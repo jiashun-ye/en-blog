@@ -46,7 +46,7 @@ decreases as <span class="math inline">\(|y - \alpha|\)</span>
 increases.</p></li>
 </ul>
 <p>The label distributions used in the paper are as follows:</p>
-<p><img src="高斯分布和三角分布.png" /></p>
+<p><img src="Gaussian_and_Triangular_Distribution.png" /></p>
 <p><u><em>Gaussian Distribution</em></u>, which smoothly reduces the
 weights of neighboring labels through exponential decay, defined as:
 <span class="math display">\[
