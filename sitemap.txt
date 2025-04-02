@@ -9,4 +9,4 @@ http://jiashun-ye.github.io/en-blog/tags/Artificial-Intelligence/
 http://jiashun-ye.github.io/en-blog/tags/Machine-Learning/
 http://jiashun-ye.github.io/en-blog/tags/Label-Distribution-Learning/
 http://jiashun-ye.github.io/en-blog/categories/Paper-Review/
-http://jiashun-ye.github.io/en-blog/categories/Paper-Review/Accuracy-Analysis/
+http://jiashun-ye.github.io/en-blog/categories/Paper-Review/Thorough-Analysis/
