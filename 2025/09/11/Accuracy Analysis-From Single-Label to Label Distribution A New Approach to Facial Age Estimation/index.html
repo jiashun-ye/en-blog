@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/en-blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/en-blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/en-blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/en-blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/en-blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jiashun-ye.github.io","root":"/en-blog/","images":"/en-blog/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":500,"width_dual_column":250,"display":"hide","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/en-blog/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/en-blog/js/config.js"></script>
+
+    <meta name="description" content="This post presents a thorough reading of the paper Facial Age Estimation by Learning from Label Distributions(2013) by Xin Geng et al. The work extends the 2011 label distribution learning (LDL) fr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints">
+<meta property="og:url" content="http://jiashun-ye.github.io/en-blog/2025/09/11/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/index.html">
+<meta property="og:site_name" content="JS.Ye’s Research Hub">
+<meta property="og:description" content="This post presents a thorough reading of the paper Facial Age Estimation by Learning from Label Distributions(2013) by Xin Geng et al. The work extends the 2011 label distribution learning (LDL) fr">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-09-11T10:47:46.000Z">
+<meta property="article:modified_time" content="2025-09-11T11:01:59.225Z">
+<meta property="article:author" content="Jiashun Ye">
+<meta property="article:tag" content="Artificial Intelligence">
+<meta property="article:tag" content="Machine Learning">
+<meta property="article:tag" content="Label Distribution Learning">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://jiashun-ye.github.io/en-blog/2025/09/11/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://jiashun-ye.github.io/en-blog/2025/09/11/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/","path":"2025/09/11/Accuracy Analysis-From Single-Label to Label Distribution A New Approach to Facial Age Estimation/","title":"Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints | JS.Ye’s Research Hub</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/en-blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/en-blog/atom.xml" title="JS.Ye’s Research Hub" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/en-blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">JS.Ye’s Research Hub</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Paper Reviews, Course Notes, and Research Progress</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/en-blog/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/en-blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/en-blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/en-blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/en-blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-chinese"><a href="https://jiashun-ye.github.io/zh-blog/" rel="section"><i class="fa fa-globe fa-fw"></i>Chinese</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#flexible-conditional-probability-modeling"><span class="nav-number">1.</span> <span class="nav-text">Flexible Conditional
+Probability Modeling</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">2.</span> <span class="nav-text">Experiments and Results</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jiashun Ye"
+      src="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">Jiashun Ye</p>
+  <div class="site-description" itemprop="description">Math & CS</div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://jiashun-ye.github.io/en-blog/2025/09/11/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="Jiashun Ye">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="JS.Ye’s Research Hub">
+      <meta itemprop="description" content="Math & CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints | JS.Ye’s Research Hub">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-09-11 18:47:46 / Modified: 19:01:59" itemprop="dateCreated datePublished" datetime="2025-09-11T18:47:46+08:00">2025-09-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en-blog/categories/Paper-Review/" itemprop="url" rel="index"><span itemprop="name">Paper Review</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en-blog/categories/Paper-Review/Thorough-Analysis/" itemprop="url" rel="index"><span itemprop="name">Thorough Analysis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>This post presents a thorough reading of the paper <em>Facial Age
+Estimation by Learning from Label Distributions</em>(2013) by Xin Geng
+et al. The work extends the 2011 label distribution learning (LDL)
+framework and the IIS-LLD optimization method by proposing the
+Conditional Probability Neural Network (CPNN), which directly models the
+conditional distribution in an end-to-end manner and breaks the
+limitation of fixed functional-form assumptions. This article focuses on
+the CPNN modeling pipeline and summarizes its experimental results on
+the FG-NET and MORPH datasets.</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/6475129">Facial Age
+Estimation by Learning from Label Distributions</a></em></p>
+<p><em>Previous post: <a
+href="https://jiashun-ye.github.io/en-blog/2025/03/16/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
+Analysis | From Single-Label to Label Distribution: A New Approach to
+Facial Age Estimation</a></em></p>
+<p>Based on the maximum-entropy model, IIS-LLD needs to pre-specify an
+exponential-family form for the conditional probability distribution;
+this assumption has limitations and can lead to model misspecification.
+To overcome this, the paper proposes CPNN, which models <span
+class="math inline">\(p(y|x)\)</span> end-to-end with neural networks,
+avoids any specific functional-form assumptions, and leverages
+label-distribution supervision to achieve more flexible and accurate age
+estimation.</p>
+<h1 id="flexible-conditional-probability-modeling">Flexible Conditional
+Probability Modeling</h1>
+<p>The goal is to directly learn the conditional distribution <span
+class="math inline">\(p(y|x)\)</span>. Let the input feature be <span
+class="math inline">\(x\in\mathbb{R}^q\)</span>, the discrete age set
+<span class="math inline">\(\mathcal Y=\{y_1,\dots,y_c\}\)</span>, and
+the given training-time label distribution be <span
+class="math inline">\(D_x(y)\)</span>. Unlike the maximum-entropy model
+<span class="math inline">\(p(y|x;\theta)\propto
+\exp\!\big(\langle\theta,\phi(x,y)\rangle\big)\)</span>, a three-layer
+perceptron directly parameterizes <span
+class="math inline">\(p(y|x)\)</span> to improve nonlinear fitting
+capacity and avoid model misspecification. This is the CPNN
+algorithm.</p>
+<p>A straightforward design would feed <span
+class="math inline">\(x\in\mathbb{R}^q\)</span> and output a
+length-<span class="math inline">\(c\)</span> age distribution in one
+shot, but that introduces <span class="math inline">\(\mathcal O(H\cdot
+c)\)</span> parameters in the last layer (with <span
+class="math inline">\(H\)</span> the number of hidden units) and is hard
+to train robustly with limited data. Instead, the age <span
+class="math inline">\(y\)</span> is also treated as input. Using a
+shared-parameter function <span class="math display">\[
+f_\theta(x,y)=\mathrm{MLP}_\theta\big([\,x,\
+\mathrm{enc}(y)\,]\big)\in\mathbb{R},
+\]</span> we enumerate all candidate ages <span
+class="math inline">\(y\in\mathcal Y\)</span> for the same image to
+obtain <span class="math inline">\(\{f_\theta(x,y)\}_{y\in\mathcal
+Y}\)</span>, and then apply exponential normalization to get <span
+class="math display">\[
+p_\theta(y|x)=\frac{\exp\big(f_\theta(x,y)\big)}{\sum_{y&#39;\in\mathcal
+Y}\exp\big(f_\theta(x,y&#39;)\big)}.
+\]</span> This “<span class="math inline">\(y\)</span>-as-input,
+single-scalar output” design preserves the softmax normalization while
+markedly reducing parameter count and naturally sharing parameters
+across neighboring ages.</p>
+<p>The training objective is the distribution-level cross-entropy <span
+class="math display">\[
+\mathcal L(\theta)=-\sum_{y\in\mathcal Y} D_x(y)\,\log
+p_\theta(y|x),\qquad
+p_\theta(y|x)=\frac{\exp\big(f_\theta(x,y)\big)}{\sum_{y&#39;}\exp\big(f_\theta(x,y&#39;)\big)}.
+\]</span> Its top-layer gradient is <span class="math inline">\(\partial
+\mathcal L/\partial f_\theta(x,y)=p_\theta(y|x)-D_x(y)\)</span>. In
+backpropagation, the output layer is linear, <span
+class="math inline">\(f_\theta(x,y)=\sum_{m=1}^{M_2}\theta_{31m}\,z^{(2)}_m(x,y)\)</span>,
+where <span class="math inline">\(z^{(2)}_m=G(I_{2m})\)</span> is the
+<span class="math inline">\(m\)</span>-th hidden unit output, <span
+class="math inline">\(I_{2m}=\sum_{k=0}^{M_1}\theta_{2mk}\,u_k\)</span>
+is its net input, <span
+class="math inline">\(u=[1,x,\mathrm{enc}(y)]\)</span> concatenates the
+bias, features, and age encoding, <span class="math inline">\(G\)</span>
+is sigmoid with derivative <span class="math inline">\(G&#39;\)</span>.
+With <span class="math inline">\(\theta_{31m}\)</span> the
+hidden-to-output weights and <span
+class="math inline">\(\theta_{2mk}\)</span> the input-to-hidden weights,
+we have <span class="math display">\[
+\frac{\partial \mathcal L}{\partial \theta_{31m}}
+=\sum_{y\in\mathcal Y}\big(p_\theta(y|x)-D_x(y)\big)\,z^{(2)}_m(x,y),
+\]</span> <span class="math display">\[
+\frac{\partial \mathcal L}{\partial \theta_{2mk}}
+=\sum_{y\in\mathcal
+Y}\big(p_\theta(y|x)-D_x(y)\big)\,\theta_{31m}\,G&#39;\!\big(I_{2m}(x,y)\big)\,u_k(x,y),
+\]</span> and in practice standard BP suffices for training.</p>
+<h1 id="experiments-and-results">Experiments and Results</h1>
+<p>FG-NET uses LOPO validation with MAE; the images come from 82
+subjects with 1002 images in total, ages 0–69. MORPH uses 10-fold
+cross-validation and reports MAE±std, ages 16–77. The 200-dimensional
+features are produced by different pipelines: FG-NET uses the Appearance
+Model to extract joint shape and grayscale features and takes the first
+200 model parameters; MORPH uses Bio-Inspired Features (BIF) and then
+applies Marginal Fisher Analysis (MFA) to reduce to 200 dimensions,
+enabling a fair comparison at the same dimensionality.</p>
+<p>As this article focuses on CPNN, we only report its performance. The
+network is a three-layer perceptron with 400 hidden units; age <span
+class="math inline">\(y\)</span> is concatenated with image features as
+input, softmax produces <span class="math inline">\(p(y|x)\)</span>, and
+the model is trained with distribution-level cross-entropy. Label
+distributions include three ablations: Gaussian, Triangle, and Single
+(degenerate), to quantify the “soft supervision” from neighboring ages.
+Compared with IIS-LLD under the same features and protocols, CPNN
+achieves lower average error but is more data-dependent with slightly
+higher variance, while IIS-LLD is more stable and faster due to its
+maximum-entropy shape prior and coordinate-wise incremental updates; in
+data-reduction experiments, IIS-LLD exhibits a smoother curve. Focusing
+on CPNN’s ablations, setting Gaussian <span
+class="math inline">\(\sigma\)</span> and Triangle base <span
+class="math inline">\(l\)</span> too narrow (approaching Single) weakens
+neighboring supervision, while too wide dilutes the primary label; a
+moderate width is best (empirically <span
+class="math inline">\(\sigma\approx2\)</span>, <span
+class="math inline">\(l\approx6\)</span>). More pronounced gains in the
+elderly sparse range, meaning that relative to age ranges with abundant
+young samples, and relative to baselines such as Single and AGES, the
+relative improvement in elderly ranges (e.g., 60–69) is larger.</p>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  table { width: 76%; margin: 14px auto; border-collapse: collapse; font-size: 0.94em; }
+  thead th { border-top: 3px solid #000; border-bottom: 2px solid #000; padding: 4px 6px; text-align: center; background: #f6f6f6; }
+  tbody td { padding: 2px 6px; text-align: left; border-bottom: 1px solid #ddd; }
+  tbody tr:last-child td { border-bottom: 3px solid #000; }
+  caption { font-size: 1.12em; margin: 4px 0 2px; }
+</style>
+</head>
+<body>
+  <table>
+    <caption>CPNN vs. IIS-LLD: Pros and Cons</caption>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Pros</th>
+        <th>Limitations</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>IIS-LLD</td>
+        <td>Maximum-entropy shape prior brings stability; coordinate-wise incremental updates converge faster; smoother curves when training data is reduced</td>
+        <td>Pre-specified $p(y|x)$ shape may mismatch the task; parameters are learned per label, under-utilizing cross-label correlations</td>
+      </tr>
+      <tr>
+        <td>CPNN</td>
+        <td>No assumed shape for $p(y|x)$, more flexible expression; all labels share parameters, explicitly exploiting neighboring-age correlation; lower average error</td>
+        <td>More data-dependent with slightly higher variance; end-to-end training is slower and needs regularization plus moderate distribution width to curb overfitting</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
+
+<p>Causally, CPNN directly models <span
+class="math inline">\(p(y|x)\)</span> and shares parameters across all
+labels, injecting the “neighboring ages are similar” structure into the
+network via soft supervision. With a proper distribution width, it
+achieves lower MAE when data is relatively sufficient or features are
+strong; the higher flexibility also makes it more sensitive to data
+scale, with slightly higher variance. IIS-LLD fixes <span
+class="math inline">\(p(y|x)\)</span> to an exponential-family form
+under maximum entropy and optimizes a lower bound via coordinate-wise
+increments, yielding more controllable updates and better computational
+efficiency; thus, it often suits scenarios with limited data that demand
+robustness and efficiency. However, this shape constraint limits
+absorption of cross-label correlations, so in large-data or
+strong-feature settings, its average error typically trails CPNN. In
+practice: if you aim for peak accuracy and have the resources, prefer
+CPNN with appropriate <span class="math inline">\(\sigma\)</span>/<span
+class="math inline">\(l\)</span> and regularization; if you prioritize
+training/inference efficiency or face limited data, prefer IIS-LLD.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/en-blog/tags/Artificial-Intelligence/" rel="tag"># Artificial Intelligence</a>
+              <a href="/en-blog/tags/Machine-Learning/" rel="tag"># Machine Learning</a>
+              <a href="/en-blog/tags/Label-Distribution-Learning/" rel="tag"># Label Distribution Learning</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/" rel="prev" title="Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints">
+                  <i class="fa fa-angle-left"></i> Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Jiashun Ye</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/comments.js"></script><script src="/en-blog/js/utils.js"></script><script src="/en-blog/js/motion.js"></script><script src="/en-blog/js/sidebar.js"></script><script src="/en-blog/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/en-blog/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/en-blog/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

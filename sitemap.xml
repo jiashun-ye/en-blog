@@ -2,18 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://jiashun-ye.github.io/en-blog/about/index.html</loc>
+    <loc>http://jiashun-ye.github.io/en-blog/2025/09/11/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/</loc>
     
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://jiashun-ye.github.io/en-blog/2025/03/16/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/</loc>
+    <loc>http://jiashun-ye.github.io/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/</loc>
     
-    <lastmod>2025-04-02</lastmod>
+    <lastmod>2025-09-11</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://jiashun-ye.github.io/en-blog/about/index.html</loc>
+    
+    <lastmod>2025-09-10</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -58,7 +67,7 @@
 
   <url>
     <loc>http://jiashun-ye.github.io/en-blog</loc>
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -66,21 +75,21 @@
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/tags/Artificial-Intelligence/</loc>
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/tags/Machine-Learning/</loc>
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/tags/Label-Distribution-Learning/</loc>
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -89,14 +98,14 @@
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/categories/Paper-Review/</loc>
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/categories/Paper-Review/Thorough-Analysis/</loc>
-    <lastmod>2025-09-09</lastmod>
+    <lastmod>2025-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
