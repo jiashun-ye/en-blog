@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/deviation.png">
 <meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/MAE_in_Different_Age_Ranges.png">
 <meta property="article:published_time" content="2025-03-16T12:12:50.000Z">
-<meta property="article:modified_time" content="2025-09-18T11:23:34.281Z">
+<meta property="article:modified_time" content="2025-09-18T12:02:04.192Z">
 <meta property="article:author" content="Jiashun Ye">
 <meta property="article:tag" content="Label Distribution Learning">
 <meta name="twitter:card" content="summary">
@@ -223,7 +223,7 @@ Objective Increment</span></a></li><li class="nav-item nav-level-3"><a class="na
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-09-18 19:23:34" itemprop="dateModified" datetime="2025-09-18T19:23:34+08:00">2025-09-18</time>
+      <time title="Modified: 2025-09-18 20:02:04" itemprop="dateModified" datetime="2025-09-18T20:02:04+08:00">2025-09-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -696,23 +696,23 @@ below:</p>
     <table>
         <thead>
             <tr>
-                <th>方法</th>
-                <th>关键参数</th>
+                <th>Method</th>
+                <th>Key Parameters</th>
             </tr>
         </thead>
         <tbody>
-            <tr><td>IIS-LLD (Gaussian)</td><td>高斯分布，标准差 \( \sigma = 1 \)</td></tr>
-            <tr><td>IIS-LLD (Triangle)</td><td>三角分布，底边长度 \( l = 6 \)</td></tr>
-            <tr><td>IIS-LLD (Single)</td><td>传统单标签，仅用真实年龄</td></tr>
-            <tr><td>AGES</td><td>老化模式子空间维度 = 20</td></tr>
-            <tr><td>WAS</td><td>不需要设置参数</td></tr>
-            <tr><td>AAS</td><td>误差阈值 = 3，年龄段 = (0-9, 10-19, 20-39, 40-69)</td></tr>
-            <tr><td>KNN</td><td>邻近样本数 \( K = 30 \)</td></tr>
-            <tr><td>BP (神经网络)</td><td>隐藏层神经元 = 100</td></tr>
-            <tr><td>C4.5 (决策树)</td><td>使用 J4.8 版本，默认参数</td></tr>
-            <tr><td>SVM</td><td>核函数：RBF，核宽度 = 1</td></tr>
-            <tr><td>HumanA (灰度图像)</td><td>仅展示去除背景的灰度脸部图像</td></tr>
-            <tr><td>HumanB (彩色图像)</td><td>展示完整的彩色图像，包括头发、服饰、背景等</td></tr>
+            <tr><td>IIS-LLD (Gaussian)</td><td>Gaussian distribution, standard deviation \( \sigma = 1 \)</td></tr>
+            <tr><td>IIS-LLD (Triangle)</td><td>Triangular distribution, base length \( l = 6 \)</td></tr>
+            <tr><td>IIS-LLD (Single)</td><td>Traditional single label, only true age used</td></tr>
+            <tr><td>AGES</td><td>Aging pattern subspace dimension = 20</td></tr>
+            <tr><td>WAS</td><td>No parameter setting required</td></tr>
+            <tr><td>AAS</td><td>Error threshold = 3, age groups = (0-9, 10-19, 20-39, 40-69)</td></tr>
+            <tr><td>KNN</td><td>Number of nearest neighbors \( K = 30 \)</td></tr>
+            <tr><td>BP (Neural Network)</td><td>Hidden layer neurons = 100</td></tr>
+            <tr><td>C4.5 (Decision Tree)</td><td>Using J4.8 version, default parameters</td></tr>
+            <tr><td>SVM</td><td>Kernel function: RBF, kernel width = 1</td></tr>
+            <tr><td>HumanA (Grayscale Image)</td><td>Only shows grayscale face image with background removed</td></tr>
+            <tr><td>HumanB (Color Image)</td><td>Shows full color image, including hair, clothing, background, etc.</td></tr>
         </tbody>
     </table>
 </body>
