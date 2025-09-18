@@ -1,4 +1,5 @@
-http://jiashun-ye.github.io/en-blog/2025/09/11/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/
+http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/
+http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/
 http://jiashun-ye.github.io/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/
 http://jiashun-ye.github.io/en-blog/about/index.html
 http://jiashun-ye.github.io/en-blog/tags/index.html
@@ -6,8 +7,5 @@ http://jiashun-ye.github.io/en-blog/categories/index.html
 http://jiashun-ye.github.io/en-blog/sitemap/index.html
 http://jiashun-ye.github.io/en-blog/schedule/index.html
 http://jiashun-ye.github.io/en-blog
-http://jiashun-ye.github.io/en-blog/tags/Artificial-Intelligence/
-http://jiashun-ye.github.io/en-blog/tags/Machine-Learning/
 http://jiashun-ye.github.io/en-blog/tags/Label-Distribution-Learning/
-http://jiashun-ye.github.io/en-blog/categories/Paper-Review/
-http://jiashun-ye.github.io/en-blog/categories/Paper-Review/Thorough-Analysis/
+http://jiashun-ye.github.io/en-blog/categories/Thorough-Analysis/

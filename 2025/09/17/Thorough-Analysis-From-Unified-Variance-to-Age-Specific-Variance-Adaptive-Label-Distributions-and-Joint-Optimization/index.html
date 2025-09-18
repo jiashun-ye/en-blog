@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/en-blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/en-blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/en-blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/en-blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/en-blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jiashun-ye.github.io","root":"/en-blog/","images":"/en-blog/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":500,"width_dual_column":250,"display":"hide","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":null},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/en-blog/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/en-blog/js/config.js"></script>
+
+    <meta name="description" content="This article presents a close reading of Xin Geng et al.’s paper Facial Age Estimation by Adaptive Label Distribution Learning(2014), systematically reviewing the method framework and providing k">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Thorough Analysis | From Unified Variance to Age-Specific Variance: Adaptive Label Distributions and Joint Optimization">
+<meta property="og:url" content="http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/index.html">
+<meta property="og:site_name" content="JS.Ye’s Research Hub">
+<meta property="og:description" content="This article presents a close reading of Xin Geng et al.’s paper Facial Age Estimation by Adaptive Label Distribution Learning(2014), systematically reviewing the method framework and providing k">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/ALDL.png">
+<meta property="article:published_time" content="2025-09-17T10:56:44.000Z">
+<meta property="article:modified_time" content="2025-09-18T11:52:56.531Z">
+<meta property="article:author" content="Jiashun Ye">
+<meta property="article:tag" content="Label Distribution Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/ALDL.png">
+
+
+<link rel="canonical" href="http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/","path":"2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/","title":"Thorough Analysis | From Unified Variance to Age-Specific Variance: Adaptive Label Distributions and Joint Optimization"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Thorough Analysis | From Unified Variance to Age-Specific Variance: Adaptive Label Distributions and Joint Optimization | JS.Ye’s Research Hub</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/en-blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/en-blog/atom.xml" title="JS.Ye’s Research Hub" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/en-blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">JS.Ye’s Research Hub</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Paper Reviews, Course Notes, and Research Progress</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/en-blog/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/en-blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/en-blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/en-blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/en-blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-chinese"><a href="https://jiashun-ye.github.io/zh-blog/" rel="section"><i class="fa fa-globe fa-fw"></i>Chinese</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#adaptive-label-distribution"><span class="nav-number">1.</span> <span class="nav-text">Adaptive Label Distribution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#estimating-age-specific-variance-and-reconstructing-soft-labels"><span class="nav-number">1.1.</span> <span class="nav-text">Estimating
+Age-Specific Variance and Reconstructing Soft Labels</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#quasi-newtondriven-parameter-learning"><span class="nav-number">1.2.</span> <span class="nav-text">Quasi-Newton–Driven
+Parameter Learning</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-analysis"><span class="nav-number">2.</span> <span class="nav-text">Experiments and Analysis</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jiashun Ye"
+      src="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">Jiashun Ye</p>
+  <div class="site-description" itemprop="description">Math & CS</div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="Jiashun Ye">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="JS.Ye’s Research Hub">
+      <meta itemprop="description" content="Math & CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Thorough Analysis | From Unified Variance to Age-Specific Variance: Adaptive Label Distributions and Joint Optimization | JS.Ye’s Research Hub">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Thorough Analysis | From Unified Variance to Age-Specific Variance: Adaptive Label Distributions and Joint Optimization
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-09-17 18:56:44" itemprop="dateCreated datePublished" datetime="2025-09-17T18:56:44+08:00">2025-09-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-09-18 19:52:56" itemprop="dateModified" datetime="2025-09-18T19:52:56+08:00">2025-09-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en-blog/categories/Thorough-Analysis/" itemprop="url" rel="index"><span itemprop="name">Thorough Analysis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><hr />
+<p>This article presents a close reading of Xin Geng et al.’s paper
+<em>Facial Age Estimation by Adaptive Label Distribution
+Learning</em>(2014), systematically reviewing the method framework and
+providing key mathematical derivations. It shows the alternating
+optimization procedure of adaptive label distributions and age-specific
+variance with soft-label construction; the quasi-Newton optimization for
+updating the parameters of the conditional probability function; and the
+experimental setup and conclusions.</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/6977477">Facial Age
+Estimation by Adaptive Label Distribution Learning</a></em></p>
+<p><em>Prior article link: <a
+href="https://jiashun-ye.github.io/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/">Close
+Reading | From Single Label to Label Distribution: A New Approach to
+Facial Age Estimation</a></em></p>
+<p>Facial aging speed is not constant: children and the elderly change
+faster, while young and middle-aged adults change more slowly. The
+degree to which neighboring ages can “borrow information” should vary
+across age ranges. Label distribution learning with a fixed variance
+cannot capture this difference, so ALDL lets each age <span
+class="math inline">\(a\)</span> learn its own variance <span
+class="math inline">\(\sigma_\alpha\)</span> from data: narrow for
+fast-changing ranges, wide for slow-changing ones. The diffusion radius
+of soft labels becomes age-specific, fitting the age structure more
+finely and improving overall prediction, especially in high-age sparse
+regions.</p>
+<h1 id="adaptive-label-distribution">Adaptive Label Distribution</h1>
+<p>Traditional label distribution learning uses the same variance for
+all ages, which conflicts with real aging rhythms: appearance changes
+faster in childhood and old age, and more slowly in young to middle age.
+Therefore, the same “neighbor borrowing” strength should not be uniform.
+<strong>Adaptive Label Distribution</strong> introduces age-specific
+variance: for each age <span class="math inline">\(\alpha\)</span>, it
+learns the width of its label distribution—sharper for fast-changing
+ages, smoother for slow-changing ones. Let <span
+class="math inline">\(\mathcal{Y}=\{y_1,\dots,y_c\}\)</span>. For a
+sample <span class="math inline">\(x\)</span> with true age <span
+class="math inline">\(\alpha\)</span>, we model its soft label with a
+discrete Gaussian: <span class="math display">\[
+d_{y,x}(\sigma_\alpha)\;=\;\frac{\exp\!\big(-\tfrac{(y-\alpha)^2}{2\sigma_\alpha^2}\big)}{\sum_{y&#39;\in\mathcal{Y}}\exp\!\big(-\tfrac{(y&#39;-\alpha)^2}{2\sigma_\alpha^2}\big)}\,,
+\]</span> where <span class="math inline">\(\sigma_\alpha\)</span> is
+the distribution width (age-specific variance) for age <span
+class="math inline">\(\alpha\)</span>.</p>
+<h2
+id="estimating-age-specific-variance-and-reconstructing-soft-labels">Estimating
+Age-Specific Variance and Reconstructing Soft Labels</h2>
+<p>The modeling strategy is driven by an improved alternating scheme. We
+start with a unified initial variance <span
+class="math inline">\(\sigma_0\)</span> to convert the training set from
+single labels to soft labels, then update the conditional probability
+parameters <span class="math inline">\(\theta\)</span> via IIS. Next,
+using the current model, we select <strong>reliable samples</strong>
+(e.g., those with absolute error <span class="math inline">\(e_i=\lvert
+\alpha_i-\hat\alpha_i\rvert\)</span> not exceeding the round’s training
+<span class="math inline">\(\mathrm{MAE}\)</span>). We group by true age
+and update <span class="math inline">\(\sigma_\alpha\)</span> using only
+the reliable samples at age <span class="math inline">\(\alpha\)</span>.
+We repeat this “learn <span class="math inline">\(\theta\)</span> — tune
+<span class="math inline">\(\sigma\)</span> — reconstruct soft labels”
+loop until the error converges. Formally, given soft labels from round
+<span class="math inline">\(k\!-\!1\)</span>, <span
+class="math inline">\(D_i^{(k-1)}=\big(d_{y,x_i}^{(k-1)}\big)_{y\in\mathcal{Y}}\)</span>,
+we first update <span class="math inline">\(\theta\)</span> as in
+standard label distribution learning: <span class="math display">\[
+\theta^{(k)} \;=\; \arg\max_{\theta}\;\sum_i\sum_{y\in\mathcal{Y}}
+d_{y,x_i}^{(k-1)}\,\log p(y\mid x_i;\theta),\qquad
+p(y\mid x;\theta)\;=\;\frac{\exp\!\big(\langle
+\theta_y,\,g(x)\rangle\big)}{\sum_{y&#39;}\exp\!\big(\langle
+\theta_{y&#39;},\,g(x)\rangle\big)}.
+\]</span> With <span class="math inline">\(\theta^{(k)}\)</span>, obtain
+point predictions <span class="math inline">\(\hat\alpha_i=\arg\max_y
+p(y\mid x_i;\theta^{(k)})\)</span> and filter reliable samples. For each
+age <span class="math inline">\(\alpha\)</span>, on its reliable set
+<span class="math inline">\(I_\alpha\)</span>, update the variance by
+minimizing the KL divergence between a Gaussian template and the model
+distribution: <span class="math display">\[
+\sigma_\alpha^{(k)} \;=\; \arg\min_{\sigma&gt;0}\;\sum_{m\in
+I_\alpha}\sum_{y\in\mathcal{Y}}
+d_{y,\alpha}(\sigma)\,\log\frac{d_{y,\alpha}(\sigma)}{\,p(y\mid
+x_m;\theta^{(k)})\,},\qquad
+d_{y,\alpha}(\sigma)\;\propto\;\exp\!\big(-\tfrac{(y-\alpha)^2}{2\sigma^2}\big).
+\]</span> For numerical implementation, we can use a log-barrier to
+transform the <span class="math inline">\(\sigma&gt;0\)</span>
+constrained problem into an unconstrained one, yielding a 1D smooth
+objective <span class="math inline">\(F_\alpha(\sigma)\)</span> solvable
+with line search or (quasi-)Newton methods. The gradient can be derived
+from the log-derivative of <span
+class="math inline">\(q_y(\sigma)=d_{y,\alpha}(\sigma)\)</span>: <span
+class="math display">\[
+\frac{\mathrm{d}F_\alpha}{\mathrm{d}\sigma}
+\;=\;\sum_{y\in\mathcal{Y}} \Big(\sum_{m\in I_\alpha}\big[\log
+q_y(\sigma)-\log p(y\mid
+x_m;\theta^{(k)})+1\big]\Big)\,\frac{\mathrm{d}q_y(\sigma)}{\mathrm{d}\sigma}
+\]</span></p>
+<p><span class="math display">\[
+\frac{\mathrm{d}q_y(\sigma)}{\mathrm{d}\sigma}
+=q_y(\sigma)\Big(\frac{(y-\alpha)^2-\mathbb{E}_{q(\sigma)}[(Y-\alpha)^2]}{\sigma^3}\Big),
+\]</span></p>
+<p>where <span
+class="math inline">\(\mathbb{E}_{q(\sigma)}[(Y-\alpha)^2]=\sum_{y}q_y(\sigma)\,(y-\alpha)^2\)</span>.
+After obtaining <span
+class="math inline">\(\{\sigma_\alpha^{(k)}\}\)</span>, we propagate
+them back to all samples to reconstruct soft labels: <span
+class="math display">\[
+d_{y,x_i}^{(k)}\;=\;\frac{\exp\!\big(-\tfrac{(y-\alpha_i)^2}{2(\sigma_{\alpha_i}^{(k)})^2}\big)}{\sum_{y&#39;}\exp\!\big(-\tfrac{(y&#39;-\alpha_i)^2}{2(\sigma_{\alpha_i}^{(k)})^2}\big)}\,,
+\]</span> and proceed to the next round. We stop when the improvement in
+<span class="math inline">\(\mathrm{MAE}\)</span> between two
+consecutive rounds is below a threshold <span
+class="math inline">\(\varepsilon\)</span>. In this way, the <span
+class="math inline">\(\theta\)</span> update follows the standard
+maximum-likelihood form of label distribution learning, while the <span
+class="math inline">\(\sigma\)</span> update lets the data decide how
+much “neighbor borrowing” each age should have. The ALDL algorithm
+flowchart is shown below.</p>
+<p><img src="ALDL.png" /></p>
+<h2 id="quasi-newtondriven-parameter-learning">Quasi-Newton–Driven
+Parameter Learning</h2>
+<p>The training objective for the conditional probability function
+remains minimizing the distribution-level negative log-likelihood. The
+“weighted log-likelihood maximization” can be rewritten as the negative
+objective: <span class="math display">\[
+T(\theta)\;=\;\sum_{i}\log\!\sum_{j}\exp\!\Big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\Big)\;-\;\sum_{i,j}
+d^{\,k-1}_{y_j,x_i}\,\sum_{r}\theta_{y_j,r}\,x_i^{(r)},
+\]</span> where <span class="math display">\[
+p(y_j\mid
+x_i;\theta)\;=\;\frac{\exp\!\big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\big)}{\sum_{j&#39;}\exp\!\big(\sum_{r}\theta_{y_{j&#39;},r}\,x_i^{(r)}\big)}.
+\]</span> The gradient is <span class="math display">\[
+\frac{\partial T(\theta)}{\partial \theta_{y_j,r}}
+\;=\;\sum_{i}p(y_j\mid x_i;\theta)\,x_i^{(r)}\;-\;\sum_{i}
+d^{\,k-1}_{y_j,x_i}\,x_i^{(r)}.
+\]</span></p>
+<p>In the <span class="math inline">\(k\)</span>-th outer alternating
+round, we replace IIS with <strong>BFGS-ALDL</strong> for inner
+optimization: warm-start at <span
+class="math inline">\(\theta_{k,0}=\theta^{(k-1)}\)</span> and set the
+initial approximate inverse Hessian <span
+class="math inline">\(B_0=I\)</span>. At inner iteration <span
+class="math inline">\(l\)</span>, take the direction <span
+class="math display">\[
+s_l \;=\; -\,B_{l-1}\,\nabla T(\theta_{k,l-1}),
+\]</span> find a step size <span class="math inline">\(\alpha_l\)</span>
+via a line search satisfying the strong Wolfe conditions, and update
+<span class="math display">\[
+\theta_{k,l}\;=\;\theta_{k,l-1}\;+\;\alpha_l\,s_l.
+\]</span> Then update the approximate inverse Hessian via standard BFGS.
+Let <span class="math display">\[
+y_l\;=\;\nabla T(\theta_{k,l})-\nabla T(\theta_{k,l-1}),\qquad
+\rho_l\;=\;\frac{1}{y_l^\top s_l},
+\]</span> then <span class="math display">\[
+B_l\;=\;(I-\rho_l s_l y_l^\top)\,B_{l-1}\,(I-\rho_l y_l
+s_l^\top)\;+\;\rho_l\,s_l s_l^\top.
+\]</span> We stop when the relative objective decrease or <span
+class="math inline">\(\lVert\nabla T(\theta_{k,l})\rVert_\infty\)</span>
+meets a threshold. The target here is the same as in the previous
+section; we simply replace the IIS inner solver with a quasi-Newton
+scheme of “Newton direction + strong Wolfe line search + BFGS inverse
+Hessian.”</p>
+<h1 id="experiments-and-analysis">Experiments and Analysis</h1>
+<p>The paper uses two standard datasets and protocols:
+<strong>FG-NET</strong> with LOPO (leave-one-person-out) and MAE
+evaluation, containing 82 subjects and 1002 images, ages 0–69; and
+<strong>MORPH (Album II)</strong> with 10-fold cross-validation and
+MAE±std, ages ~16–77. Feature dimensionality is unified at 200. FG-NET
+uses an <strong>Appearance Model</strong> to extract joint shape +
+texture features and truncates to 200 dimensions; MORPH uses
+<strong>BIF</strong> and reduces to 200 dimensions via
+<strong>MFA</strong> for comparability. Baselines are grouped along two
+axes: adaptivity and solver type. Fixed-variance label distribution
+learning (LDL) includes <strong>IIS-LDL</strong> and
+<strong>BFGS-LDL</strong>; adaptive-variance ALDL includes
+<strong>IIS-ALDL</strong> and <strong>BFGS-ALDL</strong>. We also ablate
+soft-label shapes: <strong>Gaussian</strong>, <strong>Triangle</strong>,
+and the degenerate <strong>Single</strong> (no diffusion, i.e., a single
+label).</p>
+<p>Overall, adaptive variance markedly reduces MAE, with a more
+pronounced advantage in age ranges where high-age samples are sparse
+(ALDL &gt; LDL). Under the same settings, replacing IIS with a
+quasi-Newton inner optimizer yields faster convergence and lower error;
+<strong>BFGS-ALDL</strong> typically achieves both the lowest MAE and
+the shortest training time among the four combinations, with most gains
+occurring in the first several outer iterations. In terms of
+distribution shape, <strong>Gaussian</strong> is generally slightly
+better than <strong>Triangle</strong>, and <strong>Single</strong> is
+clearly worse—consistent with the intuition that neighboring ages should
+borrow information but not be overly diluted. The learned age-specific
+variances vary with age, showing the trend of “narrow for fast-changing
+ranges, wide for slow-changing ranges,” which mechanistically explains
+the performance gains.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/en-blog/tags/Label-Distribution-Learning/" rel="tag"># Label Distribution Learning</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/" rel="prev" title="Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints">
+                  <i class="fa fa-angle-left"></i> Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Jiashun Ye</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/comments.js"></script><script src="/en-blog/js/utils.js"></script><script src="/en-blog/js/motion.js"></script><script src="/en-blog/js/sidebar.js"></script><script src="/en-blog/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/en-blog/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/en-blog/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

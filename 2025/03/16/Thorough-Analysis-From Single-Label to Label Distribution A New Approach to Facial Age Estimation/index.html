@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/en-blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/en-blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/en-blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/en-blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/en-blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jiashun-ye.github.io","root":"/en-blog/","images":"/en-blog/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":500,"width_dual_column":250,"display":"hide","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":null},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/en-blog/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/en-blog/js/config.js"></script>
+
+    <meta name="description" content="This article offers a thorough analysis of Xin Geng et al.’s paper Facial Age Estimation by Learning from Label Distributions (2011), systematically organizing its research framework and deriving t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation">
+<meta property="og:url" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/index.html">
+<meta property="og:site_name" content="JS.Ye’s Research Hub">
+<meta property="og:description" content="This article offers a thorough analysis of Xin Geng et al.’s paper Facial Age Estimation by Learning from Label Distributions (2011), systematically organizing its research framework and deriving t">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/Gaussian_and_Triangular_Distribution.png">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/Training_Process.png">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/Prediction_Process.png">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/IIS-LLD_Algorithm_Flow_Chart.png">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/Age_Estimation_Results.png">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/deviation.png">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/MAE_in_Different_Age_Ranges.png">
+<meta property="article:published_time" content="2025-03-16T12:12:50.000Z">
+<meta property="article:modified_time" content="2025-09-18T11:23:34.281Z">
+<meta property="article:author" content="Jiashun Ye">
+<meta property="article:tag" content="Label Distribution Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/Gaussian_and_Triangular_Distribution.png">
+
+
+<link rel="canonical" href="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/","path":"2025/03/16/Thorough-Analysis-From Single-Label to Label Distribution A New Approach to Facial Age Estimation/","title":"Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation | JS.Ye’s Research Hub</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/en-blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/en-blog/atom.xml" title="JS.Ye’s Research Hub" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/en-blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">JS.Ye’s Research Hub</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Paper Reviews, Course Notes, and Research Progress</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/en-blog/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/en-blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/en-blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/en-blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/en-blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-chinese"><a href="https://jiashun-ye.github.io/zh-blog/" rel="section"><i class="fa fa-globe fa-fw"></i>Chinese</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#defining-label-distributions"><span class="nav-number">1.</span> <span class="nav-text">Defining Label Distributions</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#label-distribution-model-and-learning-method"><span class="nav-number">2.</span> <span class="nav-text">Label Distribution
+Model and Learning Method</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#optimization-objective-kl-divergence"><span class="nav-number">2.1.</span> <span class="nav-text">Optimization Objective: KL
+Divergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#conditional-probability-form-maximum-entropy-model"><span class="nav-number">2.2.</span> <span class="nav-text">Conditional
+Probability Form: Maximum Entropy Model</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maximum-entropy-model"><span class="nav-number">2.2.1.</span> <span class="nav-text">Maximum Entropy Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#theoretical-derivation-of-the-closed-form-solution"><span class="nav-number">2.2.2.</span> <span class="nav-text">Theoretical
+Derivation of the Closed-Form Solution</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#optimization-algorithm-iis-lld"><span class="nav-number">2.3.</span> <span class="nav-text">Optimization Algorithm:
+IIS-LLD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#objective-function"><span class="nav-number">2.3.1.</span> <span class="nav-text">Objective Function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lower-bound-on-the-objective-increment"><span class="nav-number">2.3.2.</span> <span class="nav-text">Lower Bound on the
+Objective Increment</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#iis-lld-algorithm"><span class="nav-number">2.3.3.</span> <span class="nav-text">IIS-LLD Algorithm</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">3.</span> <span class="nav-text">Experiments and Results</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jiashun Ye"
+      src="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">Jiashun Ye</p>
+  <div class="site-description" itemprop="description">Math & CS</div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="Jiashun Ye">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="JS.Ye’s Research Hub">
+      <meta itemprop="description" content="Math & CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation | JS.Ye’s Research Hub">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-03-16 20:12:50" itemprop="dateCreated datePublished" datetime="2025-03-16T20:12:50+08:00">2025-03-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-09-18 19:23:34" itemprop="dateModified" datetime="2025-09-18T19:23:34+08:00">2025-09-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en-blog/categories/Thorough-Analysis/" itemprop="url" rel="index"><span itemprop="name">Thorough Analysis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>This article offers a thorough analysis of Xin Geng et al.’s paper
+<em>Facial Age Estimation by Learning from Label Distributions</em>
+(2011), systematically organizing its research framework and deriving
+the key mathematical models in detail. The analysis clarifies the
+definition of label distributions, examines the label distribution
+learning model that uses KL divergence as its objective, derives the
+conditional probability function based on the maximum entropy model
+along with its optimization algorithm IIS-LLD, and finally summarizes
+the paper’s experimental design and results.</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+target="_blank" rel="noopener" href="https://cdn.aaai.org/ojs/7657/7657-13-11187-1-2-20201228.pdf">Facial
+Age Estimation by Learning from Label Distributions</a></em></p>
+<p>Facial age estimation faces the challenge of data sparsity (e.g.,
+insufficient samples in high-age groups). Inspired by the continuity of
+age changes (adjacent ages having similar features), Xin Geng proposed
+the <em>label distribution learning</em> framework: expanding a single
+age label into a distribution that covers neighboring ages. By sharing
+age features, this alleviates data scarcity and significantly improves
+generalization, especially for higher ages.</p>
+<h1 id="defining-label-distributions">Defining Label Distributions</h1>
+<p>A label distribution is a generalization of single-label and
+multi-label learning. Its meaning differs from probability or fuzzy
+classification, though it is highly similar in mathematical structure to
+probability. The core idea is that each label is a correct description
+of the sample to a different degree, and all labels together form a
+complete description of the sample. Compared with traditional
+single-label learning, this approach better reflects inter-class
+correlations and is particularly suitable for tasks with continuous
+variables like age estimation.</p>
+<p>Let <span class="math inline">\(\alpha\)</span> be the original label
+and <span class="math inline">\(y\)</span> a general label. Converting
+from a single label to a label distribution follows two basic
+principles:</p>
+<ul>
+<li><p>The original label has the highest degree of description, i.e.,
+<span class="math inline">\(P(\alpha)\)</span> should be the maximum
+value in the distribution.</p></li>
+<li><p>Labels further away from the original label have lower degrees of
+description, i.e., <span class="math inline">\(P(y)\)</span> decreases
+as <span class="math inline">\(|y - \alpha|\)</span> increases.</p></li>
+</ul>
+<p>The paper uses the following two label distributions:</p>
+<p><img src="Gaussian_and_Triangular_Distribution.png" /></p>
+<p><u><em>Gaussian Distribution</em></u>, which smoothly decreases
+neighboring label weights via exponential decay, defined as: <span
+class="math display">\[
+P(y) = \frac{1}{Z} \exp \left(-\frac{(y - \alpha)^2}{2\sigma^2} \right)
+\]</span></p>
+<p>Here, <span class="math inline">\(Z\)</span> is the normalization
+factor and <span class="math inline">\(\sigma\)</span> controls the
+spread of the distribution. The Gaussian distribution makes effective
+use of neighboring label information and ensures continuity modeling of
+age variation.</p>
+<p><u><em>Triangle Distribution</em></u>, which uses linear decay and
+assigns weight to neighboring labels only within a certain range: <span
+class="math display">\[
+P(y) = \max \left(0, 1 - \frac{|y - \alpha|}{l} \right)
+\]</span></p>
+<p>Here, <span class="math inline">\(l\)</span> determines the span of
+the distribution. Compared with the Gaussian distribution, the triangle
+distribution is more localized, ensuring labels far from the original
+label do not influence the model.</p>
+<h1 id="label-distribution-model-and-learning-method">Label Distribution
+Model and Learning Method</h1>
+<p>Below is the basic structure for modeling and optimizing label
+distribution learning:</p>
+<p><img src="Training_Process.png" /></p>
+<p><img src="Prediction_Process.png" /></p>
+<h2 id="optimization-objective-kl-divergence">Optimization Objective: KL
+Divergence</h2>
+Let the input space be $ \mathcal{X} = \mathbb{R}^d $ and the label space be $ \mathcal{Y} = \{ y_1, y_2, \dots, y_c \} $. In traditional classification, each sample $ x_i $ corresponds to a single label, while in label distribution learning, each sample $ x_i $ is associated with a label distribution $ P_i(y) $ that represents the weight over different labels.
+
+The goal is to learn a conditional probability distribution $ p(y|x; \theta) $ that is as close as possible to $ P_i(y) $. We use KL divergence as the criterion:
+<p><span class="math display">\[
+\theta^* = \arg\min_{\theta} \sum_i \sum_y P_i(y) \log
+\frac{P_i(y)}{p(y|x_i; \theta)}
+\]</span></p>
+<p>Since <span class="math inline">\(P_i(y)\)</span> is constant for the
+training samples, minimizing KL divergence is equivalent to
+<em>maximizing the log-likelihood (MLE)</em>: <span
+class="math display">\[
+\theta^* = \arg\max_{\theta} \sum_i \sum_y P_i(y) \log p(y|x_i; \theta)
+\]</span> The label distribution learning framework is closely related
+to traditional problems when KL divergence is used as the objective:</p>
+<ul>
+<li>In a single-label classification task, each sample has a single deterministic label, i.e., $ P_i(y) = \delta(y, y_i) $. The objective degenerates to the classic maximum likelihood estimation:</li>
+</ul>
+<p><span class="math display">\[
+\theta^* = \arg\max_{\theta} \sum_i \log p(y_i | x_i; \theta)
+\]</span></p>
+<ul>
+<li>In a multi-label classification task, each sample $ x_i $ is
+associated with a label set $ Y_i $, and we assume $ P_i(y) $ is
+uniformly distributed over multiple labels. The objective becomes an
+entropy-weighted label assignment, turning multi-label samples into
+weighted single-label samples and optimizing the MLE objective:</li>
+</ul>
+<p><span class="math display">\[
+\theta^* = \arg\max_{\theta} \sum_i \frac{1}{|Y_i|} \sum_{y \in Y_i}
+\log p(y | x_i; \theta)
+\]</span></p>
+<h2 id="conditional-probability-form-maximum-entropy-model">Conditional
+Probability Form: Maximum Entropy Model</h2>
+<h3 id="maximum-entropy-model">Maximum Entropy Model</h3>
+To determine the form of the conditional probability function, we need to adjust parameters to optimize the KL divergence. The paper uses the maximum entropy model for the conditional probability function, which is itself an optimization problem. The objective is to maximize entropy—under constraints—so that the conditional distribution $ p(y|x; \theta) $ is as uniform as possible, contains the most information, avoids extra assumptions, and thus improves generalization:
+$$
+\max_{p(y|x; \theta)}  \sum_{x,y} \tilde{p}(x) p(y|x; \theta) \log p(y|x; \theta)
+$$
+
+Here, $p(y|x; \theta)$ is the conditional probability to be optimized; $ \tilde{p}(x,y) $ is the empirical joint distribution estimated from training data; $ \tilde{p}(x) $ is the empirical marginal distribution, i.e., $ \tilde{p}(x) = \sum_y \tilde{p}(x,y) $; $ f_k(x,y) $ are feature functions describing relationships between input $ x $ and label $ y $; and $ \theta $ are model parameters that determine the shape of the conditional distribution.
+<p>There are two constraints in the maximum entropy model:</p>
+<ul>
+<li>Expectation constraint on feature functions, requiring the model’s
+expectations to match those of the training data:</li>
+</ul>
+<p><span class="math display">\[
+\sum_{x,y} \tilde{p}(x,y) f_k(x,y) = \sum_{x,y} \tilde{p}(x) p(y|x;
+\theta) f_k(x,y), \quad \forall k.
+\]</span></p>
+<ul>
+<li>Probability normalization constraint, ensuring $ p(y|x; ) $ is a
+valid probability distribution:</li>
+</ul>
+<p><span class="math display">\[
+\sum_y p(y|x; \theta) = 1, \quad \forall x.
+\]</span> <em>Feature functions may feel abrupt; think of them this way:
+if a feature function represents the number of facial wrinkles, then the
+trained model will, in expectation, fit the wrinkle count of the
+training samples. In the paper, the feature functions come from a
+feature extractor (a black box). Although its values are not directly
+interpretable, a good extractor outputs features highly related to the
+target (e.g., age), and this constraint lets the model optimally fit
+those prediction-related features.</em></p>
+<p>This optimization has a closed-form solution: <span
+class="math display">\[
+p(y|x; \theta) = \frac{1}{Z} \exp\left( \sum_k \theta_k f_k(x,y)
+\right),
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+Z = \sum_y \exp\left( \sum_k \theta_k f_k(x,y) \right).
+\]</span></p>
+<h3 id="theoretical-derivation-of-the-closed-form-solution">Theoretical
+Derivation of the Closed-Form Solution</h3>
+<p>The optimization objective of the maximum entropy model is to
+maximize conditional entropy:</p>
+<p><span class="math display">\[
+H(P) = - \sum_{x,y} \tilde{P}(x) P(y|x) \log P(y|x)
+\]</span></p>
+<p>subject to the following constraints:</p>
+<ul>
+<li>Empirical expectation constraint:</li>
+</ul>
+<p><span class="math display">\[
+E_P(f_i) = E_{\tilde{P}}(f_i), \quad i=1,2,\dots,n
+\]</span></p>
+<ul>
+<li>Probability normalization:</li>
+</ul>
+<p><span class="math display">\[
+\sum_y P(y|x) = 1
+\]</span></p>
+<p>Introduce Lagrange multipliers <span class="math inline">\(w_0, w_1,
+\dots, w_n\)</span> to construct the Lagrangian:</p>
+<p><span class="math display">\[
+L(P,w) = -H(P) + w_0 \left( 1 - \sum_y P(y|x) \right) + \sum_{i=1}^{n}
+w_i \left( E_{\tilde{P}}(f_i) - E_P(f_i) \right)
+\]</span></p>
+<p>Expanding:</p>
+<p><span class="math display">\[
+L(P, w) = \sum_{x,y} \tilde{P}(x) P(y|x) \log P(y|x) + w_0 \left( 1 -
+\sum_y P(y|x) \right)
+\]</span></p>
+<p><span class="math display">\[
++ \sum_{i=1}^{n} w_i \left( \sum_{x,y} \tilde{P}(x,y) f_i(x,y) -
+\sum_{x,y} \tilde{P}(x) P(y|x) f_i(x,y) \right)
+\]</span></p>
+<p>Taking the partial derivative with respect to <span
+class="math inline">\(P(y|x)\)</span>:</p>
+<p><span class="math display">\[
+\frac{\partial L(P,w)}{\partial P(y|x)} = \tilde{P}(x) \left[ \log
+P(y|x) + 1 \right] - \tilde{P}(x) \sum_{i=1}^{n} w_i f_i(x,y) - w_0
+\]</span></p>
+<p>Setting it to zero:</p>
+<p><span class="math display">\[
+\log P(y|x) + 1 = \sum_{i=1}^{n} w_i f_i(x,y) + w_0
+\]</span></p>
+<p>i.e.,</p>
+<p><span class="math display">\[
+P(y|x) = \exp \left( \sum_{i=1}^{n} w_i f_i(x,y) + w_0 - 1 \right)
+\]</span></p>
+<p>Since <span class="math inline">\(P(y|x)\)</span> must satisfy
+normalization:</p>
+<p><span class="math display">\[
+\sum_y P(y|x) = 1
+\]</span></p>
+<p>we normalize:</p>
+<p><span class="math display">\[
+\sum_y \exp \left( \sum_{i=1}^{n} w_i f_i(x,y) + w_0 - 1 \right) = 1
+\]</span></p>
+<p>Define the normalization factor:</p>
+<p><span class="math display">\[
+Z(x) = \sum_y \exp \left( \sum_{i=1}^{n} w_i f_i(x,y) \right)
+\]</span></p>
+<p>then:</p>
+<p><span class="math display">\[
+\exp (w_0 - 1) = \frac{1}{Z(x)}
+\]</span></p>
+<p>Substitute back:</p>
+<p><span class="math display">\[
+P(y|x) = \frac{\exp \left( \sum_{i=1}^{n} w_i f_i(x,y) \right)}{Z(x)}
+\]</span></p>
+<p>Thus the closed-form solution of the maximum entropy model is:</p>
+<p><span class="math display">\[
+P(y|x) = \frac{\exp \left( \sum_{i=1}^{n} w_i f_i(x,y) \right)}{Z(x)}
+\]</span></p>
+<p>where:</p>
+<p><span class="math display">\[
+Z(x) = \sum_y \exp \left( \sum_{i=1}^{n} w_i f_i(x,y) \right)
+\]</span></p>
+<p>This shows the maximum entropy model takes an exponential form—an
+exponential family—where <span class="math inline">\(w_i\)</span> are to
+be optimized.</p>
+<p><em>If you’re careful, you may notice that in the derivation, the
+closed-form solution was plugged into the normalization constraint to
+determine <span class="math inline">\(w_0\)</span>. Why not also plug it
+into the expectation-equality constraint to determine <span
+class="math inline">\(w_i\)</span>? Would the expectation equality still
+hold? Think of it like this: without the expectation constraint on
+feature functions, the final model under maximum entropy would be
+uniform. Adding this constraint yields an exponential-form distribution.
+The expectation constraint acts as a “data-driven prior,” determining
+the distribution’s shape and guiding the model to leverage data
+features. It’s a “soft constraint” that fixes the form and forces the
+model to match the data’s statistics while allowing some
+flexibility.</em></p>
+<h2 id="optimization-algorithm-iis-lld">Optimization Algorithm:
+IIS-LLD</h2>
+<h3 id="objective-function">Objective Function</h3>
+<p>Plug the exponential-form conditional probability into the KL
+divergence: <span class="math display">\[
+T(\theta) = \sum_{i} \sum_{y} P_i(y) \log \left( \frac{1}{Z(x_i)} \exp
+\left( \sum_k \theta_{y,k} g_k(x_i) \right) \right)
+\]</span> Expand the logarithm: <span class="math display">\[
+T(\theta) = \sum_{i} \sum_{y} P_i(y) \sum_k \theta_{y,k} g_k(x_i) -
+\sum_i \sum_{y} P_i(y) \log Z(x_i)
+\]</span></p>
+<p>Since <span class="math inline">\(Z(x_i)\)</span> is independent of
+<span class="math inline">\(y\)</span> and <span
+class="math inline">\(\sum_y P_i(y) = 1\)</span>: <span
+class="math display">\[
+\sum_{y} P_i(y) \log Z(x_i) = \log Z(x_i) \sum_y P_i(y) = \log Z(x_i)
+\]</span> Thus <span class="math display">\[
+T(\theta) = \sum_{i} \sum_{y} P_i(y) \sum_k \theta_{y,k} g_k(x_i) -
+\sum_i \log Z(x_i)
+\]</span> Expand <span class="math inline">\(Z(x_i)\)</span>: <span
+class="math display">\[
+T(\theta) = \sum_{i} \sum_{y} P_i(y) \sum_k \theta_{y,k} g_k(x_i) -
+\sum_i \log \sum_y \exp \left( \sum_k \theta_{y,k} g_k(x_i) \right)
+\]</span></p>
+<h3 id="lower-bound-on-the-objective-increment">Lower Bound on the
+Objective Increment</h3>
+<p>We aim to maximize: <span class="math display">\[
+T(\theta) = \sum_{i,y} P_i(y) \sum_k \theta_{y,k} g_k(x_i) - \sum_i \log
+Z(x_i)
+\]</span> where <span class="math display">\[
+Z(x_i) = \sum_y \exp \left( \sum_k \theta_{y,k} g_k(x_i) \right)
+\]</span></p>
+<p>Define the parameter update: <span class="math display">\[
+\theta^{(t+1)} = \theta^{(t)} + \Delta
+\]</span> with increments: <span class="math display">\[
+\delta_{y,k} = \theta_{y,k}^{(t+1)} - \theta_{y,k}^{(t)}
+\]</span></p>
+<p>The updated normalization term: <span class="math display">\[
+Z^*(x_i) = \sum_y \exp \left( \sum_k (\theta_{y,k} + \delta_{y,k})
+g_k(x_i) \right)
+\]</span></p>
+<p>Objective change: <span class="math display">\[
+T(\theta + \Delta) - T(\theta) =
+\sum_{i,y} P_i(y) \sum_k \delta_{y,k} g_k(x_i) - \sum_i \log
+\frac{Z^*(x_i)}{Z(x_i)}
+\]</span></p>
+<p>Compute the second term: <span class="math display">\[
+\frac{Z^*(x_i)}{Z(x_i)} = \frac{\sum_y \exp \left( \sum_k (\theta_{y,k}
++ \delta_{y,k}) g_k(x_i) \right)}
+{\sum_y \exp \left( \sum_k \theta_{y,k} g_k(x_i) \right)}
+\]</span></p>
+<p>Factor out the original normalization: <span class="math display">\[
+\frac{Z^*(x_i)}{Z(x_i)} =
+\sum_y \frac{\exp \left( \sum_k \theta_{y,k} g_k(x_i) \right)}{Z(x_i)}
+\exp \left( \sum_k \delta_{y,k} g_k(x_i) \right)
+\]</span></p>
+<p>Since <span class="math display">\[
+p(y | x_i; \theta) = \frac{\exp \left( \sum_k \theta_{y,k} g_k(x_i)
+\right)}{Z(x_i)}
+\]</span></p>
+<p>we have <span class="math display">\[
+\frac{Z^*(x_i)}{Z(x_i)} = \sum_y p(y | x_i; \theta) \exp \left( \sum_k
+\delta_{y,k} g_k(x_i) \right)
+\]</span></p>
+<p>Using the inequality <span class="math display">\[
+-\log x \geq 1 - x
+\]</span></p>
+<p>and applying it to the objective change: <span
+class="math display">\[
+-\sum_i \log \sum_y p(y | x_i; \theta) \exp \left( \sum_k \delta_{y,k}
+g_k(x_i) \right)
+\geq
+\sum_i \left( 1 - \sum_y p(y | x_i; \theta) \exp \left( \sum_k
+\delta_{y,k} g_k(x_i) \right) \right)
+\]</span></p>
+<p>Hence <span class="math display">\[
+T(\theta + \Delta) - T(\theta) \geq
+\sum_{i,y} P_i(y) \sum_k \delta_{y,k} g_k(x_i) + n - \sum_i \sum_y p(y |
+x_i; \theta) \exp \left( \sum_k \delta_{y,k} g_k(x_i) \right)
+\]</span></p>
+<p>Next, apply Jensen’s inequality.</p>
+<p>Define <span class="math display">\[
+g^\#(x_i) = \sum_k |g_k(x_i)|
+\]</span></p>
+<p>Since the exponential function is convex, by Jensen’s inequality,
+letting $ s(g_k(x_i)) $ be the sign of $ g_k(x_i) $: <span
+class="math display">\[
+\sum_k \frac{|g_k(x_i)|}{g^\#(x_i)} \exp \left( \delta_{y,k} s(g_k(x_i))
+g^\#(x_i) \right)
+\geq
+\exp \left( \sum_k \frac{|g_k(x_i)|}{g^\#(x_i)} \delta_{y,k} g^\#(x_i)
+\right)
+\]</span></p>
+<p>i.e., <span class="math display">\[
+\sum_k \frac{|g_k(x_i)|}{g^\#(x_i)} \exp \left( \delta_{y,k} s(g_k(x_i))
+g^\#(x_i) \right)
+\geq
+\exp \left( \sum_k \delta_{y,k} |g_k(x_i)| \right)
+\]</span></p>
+<p>Reversing the sides: <span class="math display">\[
+-\exp \left( \sum_k \delta_{y,k} |g_k(x_i)| \right)
+\geq
+-\sum_k \frac{|g_k(x_i)|}{g^\#(x_i)} \exp \left( \delta_{y,k}
+s(g_k(x_i)) g^\#(x_i) \right)
+\]</span></p>
+<p>Substitute into the previous lower bound: <span
+class="math display">\[
+T(\theta + \Delta) - T(\theta) \geq
+\sum_{i,y} P_i(y) \sum_k \delta_{y,k} g_k(x_i) + n - \sum_{i, y} p(y |
+x_i; \theta)\sum_k \frac{|g_k(x_i)|}{g^\#(x_i)} \exp \left( \delta_{y,k}
+s(g_k(x_i)) g^\#(x_i) \right)
+\]</span></p>
+<p>Define the right-hand side as: <span class="math display">\[
+\mathcal{A}(\Delta | \theta) =
+\sum_{i,y} P_i(y) \sum_k \delta_{y,k} g_k(x_i) + n - \sum_{i, y} p(y |
+x_i; \theta)\sum_k \frac{|g_k(x_i)|}{g^\#(x_i)} \exp \left( \delta_{y,k}
+s(g_k(x_i)) g^\#(x_i) \right)
+\]</span></p>
+<p>Thus <span class="math display">\[
+T(\theta + \Delta) - T(\theta) \geq \mathcal{A}(\Delta | \theta)
+\]</span></p>
+<h3 id="iis-lld-algorithm">IIS-LLD Algorithm</h3>
+<p>Through the Jensen-based relaxation, <span
+class="math inline">\(T(\theta)\)</span> is lower-bounded by <span
+class="math inline">\(\mathcal{A}(\Delta | \theta)\)</span> such that
+the dimensions decouple and can be optimized independently.</p>
+<p>We optimize by taking derivatives of <span
+class="math inline">\(\mathcal{A}(\Delta | \theta)\)</span> and setting
+them to zero, yielding the increment for each dimension: <span
+class="math display">\[
+\frac{\partial \mathcal{A}(\Delta | \theta)}{\partial \delta_{y,k}} =
+\sum_{i} P_i(y) g_k(x_i) - \sum_{i} p(y | x_i; \theta) g_k(x_i)
+\exp(\delta_{y,k} s(g_k(x_i)) g^\#(x_i)) = 0.
+\]</span></p>
+<p>This equation can be solved numerically (e.g., with the Gauss–Newton
+method) dimension by dimension to obtain <span
+class="math inline">\(\delta_{y,k}\)</span> and complete iterative
+updates. The algorithm flow is as follows:</p>
+<p><img src="IIS-LLD_Algorithm_Flow_Chart.png" /></p>
+<p><em>The classic IIS algorithm requires nonnegative feature functions.
+To ensure flexibility of the label distribution model, the paper removes
+this restriction, hence the name IIS-LLD. While the final solution can
+still be obtained, from a numerical perspective this may introduce
+instability.</em></p>
+<h1 id="experiments-and-results">Experiments and Results</h1>
+<p>The experiments use the <em>FG-NET Aging Database</em>, which
+contains 1002 facial images from 82 subjects aged 0–69. Each subject has
+6–18 photos, with variations in illumination, expression, and pose. Due
+to fewer samples at higher ages, the researchers adopt
+<em>Leave-One-Person-Out (LOPO) cross-validation</em>: each round uses
+one subject’s images as the test set and the others as the training set,
+repeated for 82 rounds to obtain the final result. <em>Mean Absolute
+Error (MAE)</em> is used as the error metric between predicted and true
+ages.</p>
+<p>Feature extraction is based on an <em>Appearance Model</em>. The
+model first detects facial landmarks, applies <em>PCA (Principal
+Component Analysis)</em> to reduce the dimensionality of landmark
+coordinates, then normalizes the face to a canonical shape, performs PCA
+on the normalized grayscale image to extract texture features, and
+finally combines shape and texture into a single feature vector. During
+PCA, 95% of variance is retained, keeping the first 200 principal
+components.</p>
+<p>The methods and key parameters used in the experiments are listed
+below:</p>
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三线表</title>
+    <style>
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        table caption {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+    
+        table thead > tr > th {
+            border-top: 3px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 4px;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+    
+        table tbody > tr > td {
+            padding: 2px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+    
+        table tbody > tr:last-child {
+            border-bottom: 3px solid #000;
+        }
+    
+        table td:last-child {
+            border-right: none;
+        }
+    
+        table {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>方法</th>
+                <th>关键参数</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>IIS-LLD (Gaussian)</td><td>高斯分布，标准差 \( \sigma = 1 \)</td></tr>
+            <tr><td>IIS-LLD (Triangle)</td><td>三角分布，底边长度 \( l = 6 \)</td></tr>
+            <tr><td>IIS-LLD (Single)</td><td>传统单标签，仅用真实年龄</td></tr>
+            <tr><td>AGES</td><td>老化模式子空间维度 = 20</td></tr>
+            <tr><td>WAS</td><td>不需要设置参数</td></tr>
+            <tr><td>AAS</td><td>误差阈值 = 3，年龄段 = (0-9, 10-19, 20-39, 40-69)</td></tr>
+            <tr><td>KNN</td><td>邻近样本数 \( K = 30 \)</td></tr>
+            <tr><td>BP (神经网络)</td><td>隐藏层神经元 = 100</td></tr>
+            <tr><td>C4.5 (决策树)</td><td>使用 J4.8 版本，默认参数</td></tr>
+            <tr><td>SVM</td><td>核函数：RBF，核宽度 = 1</td></tr>
+            <tr><td>HumanA (灰度图像)</td><td>仅展示去除背景的灰度脸部图像</td></tr>
+            <tr><td>HumanB (彩色图像)</td><td>展示完整的彩色图像，包括头发、服饰、背景等</td></tr>
+        </tbody>
+    </table>
+</body>
+</html>
+
+
+<p>The experimental results are shown below. Bars outperforming HumanA
+are highlighted in purple; those outperforming HumanB are marked with a
+vertical dashed line:</p>
+<p><img src="Age_Estimation_Results.png" /></p>
+<p><em>From the figure we can see that even without using label
+distributions, the IIS-LLD algorithm performs very well—thanks to the
+favorable properties of the maximum entropy model. Label distributions
+further enhance performance, pushing it beyond HumanB. The Gaussian
+distribution covers all ages, the triangle distribution only nearby
+ages, and the single-label case only the age itself—their performance
+decreases in that order.</em></p>
+<p>The paper also tunes the parameters <span
+class="math inline">\(\sigma\)</span> and <span
+class="math inline">\(l\)</span> of the two label distributions and
+reports the corresponding MAE as follows:</p>
+<p><img src="deviation.png" /></p>
+<p><em>Larger parameters imply a more dispersed distribution. When both
+parameters are zero, both distributions degenerate to a single label.
+The best performance arises by balancing the contribution from
+neighboring labels so they help without “overpowering” the true
+label.</em></p>
+<p>Next is a visualization of the MAE across age ranges for the three
+IIS-LLD variants and the strongest baseline AGES, where <span
+class="math inline">\(n\)</span> denotes the number of samples in that
+range.</p>
+<p><img src="MAE_in_Different_Age_Ranges.png" /></p>
+<p><em>In age ranges with abundant data (younger groups), IIS-LLD is
+slightly inferior to AGES, which is specialized for facial age
+estimation; in data-sparse older ranges, IIS-LLD clearly outperforms
+AGES. This validates the idea in the paper that label distributions
+compensate for data scarcity.</em></p>
+<p>Finally, the authors outline three scenarios where label
+distributions are particularly valuable to address label uncertainty and
+data scarcity: when instance labels are inherently distributions; when
+strong correlations exist among classes; and when labels from different
+sources are disputed.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/en-blog/tags/Label-Distribution-Learning/" rel="tag"># Label Distribution Learning</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/" rel="next" title="Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints">
+                  Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Jiashun Ye</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/comments.js"></script><script src="/en-blog/js/utils.js"></script><script src="/en-blog/js/motion.js"></script><script src="/en-blog/js/sidebar.js"></script><script src="/en-blog/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/en-blog/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/en-blog/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
