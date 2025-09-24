@@ -1,5 +1,5 @@
-http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/
 http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/
+http://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/
 http://jiashun-ye.github.io/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/
 http://jiashun-ye.github.io/en-blog/about/index.html
 http://jiashun-ye.github.io/en-blog/tags/index.html

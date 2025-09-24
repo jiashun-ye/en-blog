@@ -1,171 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints</title>
-    <url>/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/</url>
-    <content><![CDATA[<p>This post presents a thorough reading of the 2013 paper <em>Facial
-Age Estimation by Learning from Label Distributions</em> by Xin Geng et
-al. The work extends the 2011 label distribution learning (LDL)
-framework and the IIS-LLD optimization method by proposing the
-Conditional Probability Neural Network (CPNN), which directly models the
-conditional distribution in an end-to-end manner and breaks the
-limitation of fixed functional-form assumptions. This article focuses on
-the CPNN modeling pipeline and summarizes its experimental results on
-the FG-NET and MORPH datasets.</p>
-<span id="more"></span>
-<p><em>Paper link: <a
-href="https://ieeexplore.ieee.org/document/6475129">Facial Age
-Estimation by Learning from Label Distributions</a></em></p>
-<p><em>Previous post: <a
-href="https://jiashun-ye.github.io/en-blog/2025/03/16/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
-Analysis | From Single-Label to Label Distribution: A New Approach to
-Facial Age Estimation</a></em></p>
-<p>Based on the maximum-entropy model, IIS-LLD needs to pre-specify an
-exponential-family form for the conditional probability distribution;
-this assumption has limitations and can lead to model misspecification.
-To overcome this, the paper proposes CPNN, which models (p(yx))
-end-to-end with neural networks, avoids any specific functional-form
-assumptions, and leverages label-distribution supervision to achieve
-more flexible and accurate age estimation.</p>
-<h1 id="flexible-conditional-probability-modeling">Flexible Conditional
-Probability Modeling</h1>
-<p>The goal is to directly learn the conditional distribution (p(yx)).
-Let the input feature be (x^q), the discrete age set (Y={y_1,,y_c}), and
-the given training-time label distribution be (D_x(y)). Unlike the
-maximum-entropy model (p(yx;)!(,(x,y))), a three-layer perceptron
-directly parameterizes (p(yx)) to improve nonlinear fitting capacity and
-avoid model misspecification. This is the CPNN algorithm.</p>
-<p>A straightforward design would feed (x^q) and output a length-(c) age
-distribution in one shot, but that introduces (O(H!!c)) parameters in
-the last layer (with (H) the number of hidden units) and is hard to
-train robustly with limited data. Instead, the age (y) is also treated
-as input. Using a shared-parameter function <span
-class="math display">\[
-f_\theta(x,y)=\mathrm{MLP}_\theta\!\big([\;x,\
-\mathrm{enc}(y)\;]\big)\in\mathbb{R},
-\]</span> we enumerate all candidate ages (yY) for the same image to
-obtain ({f_(x,y)}_{yY}), and then apply exponential normalization to get
-<span class="math display">\[
-p_\theta(y\mid
-x)=\frac{\exp\!\big(f_\theta(x,y)\big)}{\sum_{y&#39;\in\mathcal
-Y}\exp\!\big(f_\theta(x,y&#39;)\big)}.
-\]</span> This “(y)-as-input, single scalar output” design preserves the
-softmax normalization while markedly reducing parameter count and
-naturally sharing parameters across neighboring ages.</p>
-<p>The training objective is the distribution-level cross-entropy <span
-class="math display">\[
-\mathcal L(\theta)=-\sum_{y\in\mathcal Y} D_x(y)\,\log p_\theta(y\mid
-x),\qquad
-p_\theta(y\mid
-x)=\frac{\exp(f_\theta(x,y))}{\sum_{y&#39;}\exp(f_\theta(x,y&#39;))}.
-\]</span> Its top-layer gradient is (L/f_(x,y)=p_(yx)-D_x(y)). In
-backpropagation, the output layer is linear,
-(f_(x,y)=<em>{m=1}<sup>{M_2}<em>{31m},z^{(2)}<em>m(x,y)), where
-(z^{(2)}<em>m=G(I</em>{2m})) is the (m)-th hidden unit output,
-(I</em>{2m}=</em>{k=0}</sup>{M_1}</em>{2mk},u_k) is its net input,
-(u=[1,x,(y)]) concatenates the bias, features, and age encoding, (G) is
-sigmoid with derivative (G'). With (<em>{31m}) the hidden-to-output
-weights and (</em>{2mk}) the input-to-hidden weights, we have <span
-class="math display">\[
-\frac{\partial \mathcal L}{\partial \theta_{31m}}
-=\sum_{y\in\mathcal Y}\big(p_\theta(y\mid
-x)-D_x(y)\big)\,z^{(2)}_m(x,y),\qquad
-\]</span> <span class="math display">\[
-\frac{\partial \mathcal L}{\partial \theta_{2mk}}
-=\sum_{y\in\mathcal Y}\big(p_\theta(y\mid
-x)-D_x(y)\big)\,\theta_{31m}\,G&#39;(I_{2m}(x,y))\,u_k(x,y),
-\]</span> and in practice standard BP suffices for training.</p>
-<h1 id="experiments-and-results">Experiments and Results</h1>
-<p>FG-NET uses LOPO validation with MAE; the images come from 82
-subjects with 1002 images in total, ages 0–69. MORPH uses 10-fold
-cross-validation and reports MAE±std, ages 16–77. The 200-dimensional
-features are produced by different pipelines: FG-NET uses the Appearance
-Model to extract joint shape and grayscale features and takes the first
-200 model parameters; MORPH uses Bio-Inspired Features (BIF) and then
-applies Marginal Fisher Analysis (MFA) to reduce to 200 dimensions,
-enabling a fair comparison at the same dimensionality.</p>
-<p>As this article focuses on CPNN, we only report its performance. The
-network is a three-layer perceptron with 400 hidden units; age (y) is
-concatenated with image features as input, softmax produces (p(yx)), and
-the model is trained with distribution-level cross-entropy. Label
-distributions include three ablations: Gaussian, Triangle, and Single
-(degenerate), to quantify the “soft supervision” from neighboring ages.
-Compared with IIS-LLD under the same features and protocols, CPNN
-achieves lower average error but is more data-dependent with slightly
-higher variance, while IIS-LLD is more stable and faster due to its
-maximum-entropy shape prior and coordinate-wise incremental updates; in
-data-reduction experiments, IIS-LLD exhibits a smoother curve. Focusing
-on CPNN’s ablations, setting Gaussian () and Triangle base (l) too
-narrow (approaching Single) weakens neighboring supervision, while too
-wide dilutes the primary label; a moderate width is best (empirically
-(!!2), (l!!6)). Here, “more pronounced gains in the elderly sparse
-range” means that relative to age ranges with abundant young samples,
-and relative to baselines such as Single and AGES, the relative
-improvement in elderly ranges (e.g., 60–69) is larger.</p>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<style>
-  table { width: 76%; margin: 14px auto; border-collapse: collapse; font-size: 0.94em; }
-  thead th { border-top: 3px solid #000; border-bottom: 2px solid #000; padding: 4px 6px; text-align: center; background: #f6f6f6; }
-  tbody td { padding: 2px 6px; text-align: left; border-bottom: 1px solid #ddd; }
-  tbody tr:last-child td { border-bottom: 3px solid #000; }
-  caption { font-size: 1.12em; margin: 4px 0 2px; }
-</style>
-</head>
-<body>
-  <table>
-    <caption>CPNN vs. IIS-LLD: Pros and Cons</caption>
-    <thead>
-      <tr>
-        <th>Method</th>
-        <th>Pros</th>
-        <th>Limitations</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>IIS-LLD</td>
-        <td>Maximum-entropy shape prior brings stability; coordinate-wise incremental updates converge faster; smoother curves when training data is reduced</td>
-        <td>Pre-specified \(p(y|x)\) shape may mismatch the task; parameters are learned per label, under-utilizing cross-label correlations</td>
-      </tr>
-      <tr>
-        <td>CPNN</td>
-        <td>No assumed shape for \(p(y|x)\), more flexible expression; all labels share parameters, explicitly exploiting neighboring-age correlation; lower average error</td>
-        <td>More data-dependent with slightly higher variance; end-to-end training is slower and needs regularization plus moderate distribution width to curb overfitting</td>
-      </tr>
-    </tbody>
-  </table>
-</body>
-</html>
-
-<p>Causally, CPNN directly models (p(y|x)) and shares parameters across
-all labels, injecting the “neighboring ages are similar” structure into
-the network via soft supervision. With a proper distribution width, it
-achieves lower MAE when data is relatively sufficient or features are
-strong; the higher flexibility also makes it more sensitive to data
-scale, with slightly higher variance. IIS-LLD fixes (p(y|x)) to an
-exponential-family form under maximum entropy and optimizes a lower
-bound via coordinate-wise increments, yielding more controllable updates
-and better computational efficiency; thus, it often suits scenarios with
-limited data that demand robustness and efficiency. However, this shape
-constraint limits absorption of cross-label correlations, so in
-large-data or strong-feature settings, its average error typically
-trails CPNN. In practice: if you aim for peak accuracy and have the
-resources, prefer CPNN with appropriate ()/(l) and regularization; if
-you prioritize training/inference efficiency or face limited data,
-prefer IIS-LLD.</p>
-]]></content>
-      <categories>
-        <category>Thorough Analysis</category>
-      </categories>
-      <tags>
-        <tag>Label Distribution Learning</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation</title>
     <url>/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/</url>
     <content><![CDATA[<p>This article offers a thorough analysis of Xin Geng et al.’s paper
@@ -688,10 +523,174 @@ sources are disputed.</p>
       </tags>
   </entry>
   <entry>
+    <title>Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints</title>
+    <url>/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/</url>
+    <content><![CDATA[<p>This post presents a thorough reading of the 2013 paper <em>Facial
+Age Estimation by Learning from Label Distributions</em> by Xin Geng et
+al. The work extends the 2011 label distribution learning (LDL)
+framework and the IIS-LLD optimization method by proposing the
+Conditional Probability Neural Network (CPNN), which directly models the
+conditional distribution in an end-to-end manner and breaks the
+limitation of fixed functional-form assumptions. This article focuses on
+the CPNN modeling pipeline and summarizes its experimental results on
+the FG-NET and MORPH datasets.</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+href="https://ieeexplore.ieee.org/document/6475129">Facial Age
+Estimation by Learning from Label Distributions</a></em></p>
+<p><em>Previous post: <a
+href="https://jiashun-ye.github.io/en-blog/2025/03/16/Accuracy%20Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
+Analysis | From Single-Label to Label Distribution: A New Approach to
+Facial Age Estimation</a></em></p>
+<p>Based on the maximum-entropy model, IIS-LLD needs to pre-specify an
+exponential-family form for the conditional probability distribution;
+this assumption has limitations and can lead to model misspecification.
+To overcome this, the paper proposes CPNN, which models (p(yx))
+end-to-end with neural networks, avoids any specific functional-form
+assumptions, and leverages label-distribution supervision to achieve
+more flexible and accurate age estimation.</p>
+<h1 id="flexible-conditional-probability-modeling">Flexible Conditional
+Probability Modeling</h1>
+<p>The goal is to directly learn the conditional distribution (p(yx)).
+Let the input feature be (x^q), the discrete age set (Y={y_1,,y_c}), and
+the given training-time label distribution be (D_x(y)). Unlike the
+maximum-entropy model (p(yx;)!(,(x,y))), a three-layer perceptron
+directly parameterizes (p(yx)) to improve nonlinear fitting capacity and
+avoid model misspecification. This is the CPNN algorithm.</p>
+<p>A straightforward design would feed (x^q) and output a length-(c) age
+distribution in one shot, but that introduces (O(H!!c)) parameters in
+the last layer (with (H) the number of hidden units) and is hard to
+train robustly with limited data. Instead, the age (y) is also treated
+as input. Using a shared-parameter function <span
+class="math display">\[
+f_\theta(x,y)=\mathrm{MLP}_\theta\!\big([\;x,\
+\mathrm{enc}(y)\;]\big)\in\mathbb{R},
+\]</span> we enumerate all candidate ages (yY) for the same image to
+obtain ({f_(x,y)}_{yY}), and then apply exponential normalization to get
+<span class="math display">\[
+p_\theta(y\mid
+x)=\frac{\exp\!\big(f_\theta(x,y)\big)}{\sum_{y&#39;\in\mathcal
+Y}\exp\!\big(f_\theta(x,y&#39;)\big)}.
+\]</span> This “(y)-as-input, single scalar output” design preserves the
+softmax normalization while markedly reducing parameter count and
+naturally sharing parameters across neighboring ages.</p>
+<p>The training objective is the distribution-level cross-entropy <span
+class="math display">\[
+\mathcal L(\theta)=-\sum_{y\in\mathcal Y} D_x(y)\,\log p_\theta(y\mid
+x),\qquad
+p_\theta(y\mid
+x)=\frac{\exp(f_\theta(x,y))}{\sum_{y&#39;}\exp(f_\theta(x,y&#39;))}.
+\]</span> Its top-layer gradient is (L/f_(x,y)=p_(yx)-D_x(y)). In
+backpropagation, the output layer is linear,
+(f_(x,y)=<em>{m=1}<sup>{M_2}<em>{31m},z^{(2)}<em>m(x,y)), where
+(z^{(2)}<em>m=G(I</em>{2m})) is the (m)-th hidden unit output,
+(I</em>{2m}=</em>{k=0}</sup>{M_1}</em>{2mk},u_k) is its net input,
+(u=[1,x,(y)]) concatenates the bias, features, and age encoding, (G) is
+sigmoid with derivative (G'). With (<em>{31m}) the hidden-to-output
+weights and (</em>{2mk}) the input-to-hidden weights, we have <span
+class="math display">\[
+\frac{\partial \mathcal L}{\partial \theta_{31m}}
+=\sum_{y\in\mathcal Y}\big(p_\theta(y\mid
+x)-D_x(y)\big)\,z^{(2)}_m(x,y),\qquad
+\]</span> <span class="math display">\[
+\frac{\partial \mathcal L}{\partial \theta_{2mk}}
+=\sum_{y\in\mathcal Y}\big(p_\theta(y\mid
+x)-D_x(y)\big)\,\theta_{31m}\,G&#39;(I_{2m}(x,y))\,u_k(x,y),
+\]</span> and in practice standard BP suffices for training.</p>
+<h1 id="experiments-and-results">Experiments and Results</h1>
+<p>FG-NET uses LOPO validation with MAE; the images come from 82
+subjects with 1002 images in total, ages 0–69. MORPH uses 10-fold
+cross-validation and reports MAE±std, ages 16–77. The 200-dimensional
+features are produced by different pipelines: FG-NET uses the Appearance
+Model to extract joint shape and grayscale features and takes the first
+200 model parameters; MORPH uses Bio-Inspired Features (BIF) and then
+applies Marginal Fisher Analysis (MFA) to reduce to 200 dimensions,
+enabling a fair comparison at the same dimensionality.</p>
+<p>As this article focuses on CPNN, we only report its performance. The
+network is a three-layer perceptron with 400 hidden units; age (y) is
+concatenated with image features as input, softmax produces (p(yx)), and
+the model is trained with distribution-level cross-entropy. Label
+distributions include three ablations: Gaussian, Triangle, and Single
+(degenerate), to quantify the “soft supervision” from neighboring ages.
+Compared with IIS-LLD under the same features and protocols, CPNN
+achieves lower average error but is more data-dependent with slightly
+higher variance, while IIS-LLD is more stable and faster due to its
+maximum-entropy shape prior and coordinate-wise incremental updates; in
+data-reduction experiments, IIS-LLD exhibits a smoother curve. Focusing
+on CPNN’s ablations, setting Gaussian () and Triangle base (l) too
+narrow (approaching Single) weakens neighboring supervision, while too
+wide dilutes the primary label; a moderate width is best (empirically
+(!!2), (l!!6)). Here, “more pronounced gains in the elderly sparse
+range” means that relative to age ranges with abundant young samples,
+and relative to baselines such as Single and AGES, the relative
+improvement in elderly ranges (e.g., 60–69) is larger.</p>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  table { width: 76%; margin: 14px auto; border-collapse: collapse; font-size: 0.94em; }
+  thead th { border-top: 3px solid #000; border-bottom: 2px solid #000; padding: 4px 6px; text-align: center; background: #f6f6f6; }
+  tbody td { padding: 2px 6px; text-align: left; border-bottom: 1px solid #ddd; }
+  tbody tr:last-child td { border-bottom: 3px solid #000; }
+  caption { font-size: 1.12em; margin: 4px 0 2px; }
+</style>
+</head>
+<body>
+  <table>
+    <caption>CPNN vs. IIS-LLD: Pros and Cons</caption>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Pros</th>
+        <th>Limitations</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>IIS-LLD</td>
+        <td>Maximum-entropy shape prior brings stability; coordinate-wise incremental updates converge faster; smoother curves when training data is reduced</td>
+        <td>Pre-specified \(p(y|x)\) shape may mismatch the task; parameters are learned per label, under-utilizing cross-label correlations</td>
+      </tr>
+      <tr>
+        <td>CPNN</td>
+        <td>No assumed shape for \(p(y|x)\), more flexible expression; all labels share parameters, explicitly exploiting neighboring-age correlation; lower average error</td>
+        <td>More data-dependent with slightly higher variance; end-to-end training is slower and needs regularization plus moderate distribution width to curb overfitting</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
+
+<p>Causally, CPNN directly models (p(y|x)) and shares parameters across
+all labels, injecting the “neighboring ages are similar” structure into
+the network via soft supervision. With a proper distribution width, it
+achieves lower MAE when data is relatively sufficient or features are
+strong; the higher flexibility also makes it more sensitive to data
+scale, with slightly higher variance. IIS-LLD fixes (p(y|x)) to an
+exponential-family form under maximum entropy and optimizes a lower
+bound via coordinate-wise increments, yielding more controllable updates
+and better computational efficiency; thus, it often suits scenarios with
+limited data that demand robustness and efficiency. However, this shape
+constraint limits absorption of cross-label correlations, so in
+large-data or strong-feature settings, its average error typically
+trails CPNN. In practice: if you aim for peak accuracy and have the
+resources, prefer CPNN with appropriate ()/(l) and regularization; if
+you prioritize training/inference efficiency or face limited data,
+prefer IIS-LLD.</p>
+]]></content>
+      <categories>
+        <category>Thorough Analysis</category>
+      </categories>
+      <tags>
+        <tag>Label Distribution Learning</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Thorough Analysis | From Unified Variance to Age-Specific Variance: Adaptive Label Distributions and Joint Optimization</title>
     <url>/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/</url>
-    <content><![CDATA[<hr />
-<p>This article presents a close reading of Xin Geng et al.’s paper
+    <content><![CDATA[<p>This article presents a close reading of Xin Geng et al.’s paper
 <em>Facial Age Estimation by Adaptive Label Distribution
 Learning</em>(2014), systematically reviewing the method framework and
 providing key mathematical derivations. It shows the alternating
@@ -723,10 +722,10 @@ regions.</p>
 all ages, which conflicts with real aging rhythms: appearance changes
 faster in childhood and old age, and more slowly in young to middle age.
 Therefore, the same “neighbor borrowing” strength should not be uniform.
-<strong>Adaptive Label Distribution</strong> introduces age-specific
-variance: for each age <span class="math inline">\(\alpha\)</span>, it
-learns the width of its label distribution—sharper for fast-changing
-ages, smoother for slow-changing ones. Let <span
+Adaptive Label Distribution introduces age-specific variance: for each
+age <span class="math inline">\(\alpha\)</span>, it learns the width of
+its label distribution—sharper for fast-changing ages, smoother for
+slow-changing ones. Let <span
 class="math inline">\(\mathcal{Y}=\{y_1,\dots,y_c\}\)</span>. For a
 sample <span class="math inline">\(x\)</span> with true age <span
 class="math inline">\(\alpha\)</span>, we model its soft label with a
@@ -743,8 +742,8 @@ start with a unified initial variance <span
 class="math inline">\(\sigma_0\)</span> to convert the training set from
 single labels to soft labels, then update the conditional probability
 parameters <span class="math inline">\(\theta\)</span> via IIS. Next,
-using the current model, we select <strong>reliable samples</strong>
-(e.g., those with absolute error <span class="math inline">\(e_i=\lvert
+using the current model, we select reliable samples (e.g., those with
+absolute error <span class="math inline">\(e_i=\lvert
 \alpha_i-\hat\alpha_i\rvert\)</span> not exceeding the round’s training
 <span class="math inline">\(\mathrm{MAE}\)</span>). We group by true age
 and update <span class="math inline">\(\sigma_\alpha\)</span> using only
@@ -824,10 +823,9 @@ x_i;\theta)\;=\;\frac{\exp\!\big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\big)}{\sum_{j
 d^{\,k-1}_{y_j,x_i}\,x_i^{(r)}.
 \]</span></p>
 <p>In the <span class="math inline">\(k\)</span>-th outer alternating
-round, we replace IIS with <strong>BFGS-ALDL</strong> for inner
-optimization: warm-start at <span
-class="math inline">\(\theta_{k,0}=\theta^{(k-1)}\)</span> and set the
-initial approximate inverse Hessian <span
+round, we replace IIS with BFGS-ALDL for inner optimization: warm-start
+at <span class="math inline">\(\theta_{k,0}=\theta^{(k-1)}\)</span> and
+set the initial approximate inverse Hessian <span
 class="math inline">\(B_0=I\)</span>. At inner iteration <span
 class="math inline">\(l\)</span>, take the direction <span
 class="math display">\[
@@ -850,31 +848,26 @@ section; we simply replace the IIS inner solver with a quasi-Newton
 scheme of “Newton direction + strong Wolfe line search + BFGS inverse
 Hessian.”</p>
 <h1 id="experiments-and-analysis">Experiments and Analysis</h1>
-<p>The paper uses two standard datasets and protocols:
-<strong>FG-NET</strong> with LOPO (leave-one-person-out) and MAE
-evaluation, containing 82 subjects and 1002 images, ages 0–69; and
-<strong>MORPH (Album II)</strong> with 10-fold cross-validation and
-MAE±std, ages ~16–77. Feature dimensionality is unified at 200. FG-NET
-uses an <strong>Appearance Model</strong> to extract joint shape +
-texture features and truncates to 200 dimensions; MORPH uses
-<strong>BIF</strong> and reduces to 200 dimensions via
-<strong>MFA</strong> for comparability. Baselines are grouped along two
-axes: adaptivity and solver type. Fixed-variance label distribution
-learning (LDL) includes <strong>IIS-LDL</strong> and
-<strong>BFGS-LDL</strong>; adaptive-variance ALDL includes
-<strong>IIS-ALDL</strong> and <strong>BFGS-ALDL</strong>. We also ablate
-soft-label shapes: <strong>Gaussian</strong>, <strong>Triangle</strong>,
-and the degenerate <strong>Single</strong> (no diffusion, i.e., a single
-label).</p>
+<p>The paper uses two standard datasets and protocols: FG-NET with LOPO
+(leave-one-person-out) and MAE evaluation, containing 82 subjects and
+1002 images, ages 0–69; and MORPH (Album II) with 10-fold
+cross-validation and MAE±std, ages ~16–77. Feature dimensionality is
+unified at 200. FG-NET uses an Appearance Model to extract joint shape +
+texture features and truncates to 200 dimensions; MORPH uses BIF and
+reduces to 200 dimensions via MFA for comparability. Baselines are
+grouped along two axes: adaptivity and solver type. Fixed-variance label
+distribution learning (LDL) includes IIS-LDL and BFGS-LDL;
+adaptive-variance ALDL includes IIS-ALDL and BFGS-ALDL. We also ablate
+soft-label shapes: Gaussian, Triangle, and the degenerate Single (no
+diffusion, i.e., a single label).</p>
 <p>Overall, adaptive variance markedly reduces MAE, with a more
 pronounced advantage in age ranges where high-age samples are sparse
 (ALDL &gt; LDL). Under the same settings, replacing IIS with a
 quasi-Newton inner optimizer yields faster convergence and lower error;
-<strong>BFGS-ALDL</strong> typically achieves both the lowest MAE and
-the shortest training time among the four combinations, with most gains
-occurring in the first several outer iterations. In terms of
-distribution shape, <strong>Gaussian</strong> is generally slightly
-better than <strong>Triangle</strong>, and <strong>Single</strong> is
+BFGS-ALDL typically achieves both the lowest MAE and the shortest
+training time among the four combinations, with most gains occurring in
+the first several outer iterations. In terms of distribution shape,
+Gaussian is generally slightly better than Triangle, and Single is
 clearly worse—consistent with the intuition that neighboring ages should
 borrow information but not be overly diluted. The learned age-specific
 variances vary with age, showing the trend of “narrow for fast-changing
