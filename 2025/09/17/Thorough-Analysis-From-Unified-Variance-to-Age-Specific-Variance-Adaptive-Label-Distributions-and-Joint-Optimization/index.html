@@ -28,7 +28,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/ALDL.png">
 <meta property="article:published_time" content="2025-09-17T10:56:44.000Z">
-<meta property="article:modified_time" content="2025-09-24T15:13:42.030Z">
+<meta property="article:modified_time" content="2025-10-06T12:09:18.065Z">
 <meta property="article:author" content="Jiashun Ye">
 <meta property="article:tag" content="Label Distribution Learning">
 <meta name="twitter:card" content="summary">
@@ -142,8 +142,8 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#adaptive-label-distribution"><span class="nav-number">1.</span> <span class="nav-text">Adaptive Label Distribution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#estimating-age-specific-variance-and-reconstructing-soft-labels"><span class="nav-number">1.1.</span> <span class="nav-text">Estimating
-Age-Specific Variance and Reconstructing Soft Labels</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#quasi-newtondriven-parameter-learning"><span class="nav-number">1.2.</span> <span class="nav-text">Quasi-Newton–Driven
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#adaptive-label-distribution"><span class="nav-number">1.</span> <span class="nav-text">Adaptive Label Distribution</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#age-specific-variance-estimation-and-soft-label-reconstruction"><span class="nav-number">1.1.</span> <span class="nav-text">Age-specific
+Variance Estimation and Soft-label Reconstruction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#quasi-newtondriven-parameter-learning"><span class="nav-number">1.2.</span> <span class="nav-text">Quasi-Newton–Driven
 Parameter Learning</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-analysis"><span class="nav-number">2.</span> <span class="nav-text">Experiments and Analysis</span></a></li></ol></div>
         </div>
         <!--/noindex-->
@@ -213,7 +213,7 @@ Parameter Learning</span></a></li></ol></li><li class="nav-item nav-level-1"><a 
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-09-24 23:13:42" itemprop="dateModified" datetime="2025-09-24T23:13:42+08:00">2025-09-24</time>
+      <time title="Modified: 2025-10-06 20:09:18" itemprop="dateModified" datetime="2025-10-06T20:09:18+08:00">2025-10-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -279,118 +279,215 @@ d_{y,x}(\sigma_\alpha)\;=\;\frac{\exp\!\big(-\tfrac{(y-\alpha)^2}{2\sigma_\alpha
 the distribution width (age-specific variance) for age <span
 class="math inline">\(\alpha\)</span>.</p>
 <h2
-id="estimating-age-specific-variance-and-reconstructing-soft-labels">Estimating
-Age-Specific Variance and Reconstructing Soft Labels</h2>
-<p>The modeling strategy is driven by an improved alternating scheme. We
+id="age-specific-variance-estimation-and-soft-label-reconstruction">Age-specific
+Variance Estimation and Soft-label Reconstruction</h2>
+<p>The entire method is organized as an improved alternating scheme:
 start with a unified initial variance <span
 class="math inline">\(\sigma_0\)</span> to convert the training set from
-single labels to soft labels, then update the conditional probability
-parameters <span class="math inline">\(\theta\)</span> via IIS. Next,
-using the current model, we select reliable samples (e.g., those with
+single labels to soft labels; then update the conditional-probability
+parameters <span class="math inline">\(\theta\)</span> using IIS; next,
+select reliable samples under the current model (e.g., those with
 absolute error <span class="math inline">\(e_i=\lvert
 \alpha_i-\hat\alpha_i\rvert\)</span> not exceeding the round’s training
-<span class="math inline">\(\mathrm{MAE}\)</span>). We group by true age
-and update <span class="math inline">\(\sigma_\alpha\)</span> using only
-the reliable samples at age <span class="math inline">\(\alpha\)</span>.
-We repeat this “learn <span class="math inline">\(\theta\)</span> — tune
-<span class="math inline">\(\sigma\)</span> — reconstruct soft labels”
-loop until the error converges. Formally, given soft labels from round
-<span class="math inline">\(k\!-\!1\)</span>, <span
+<span class="math inline">\(\mathrm{MAE}\)</span>), group them by
+chronological age, and update the variance <span
+class="math inline">\(\sigma_\alpha\)</span> for each age <span
+class="math inline">\(\alpha\)</span> using only reliable samples
+belonging to <span class="math inline">\(\alpha\)</span>. The cycle
+“learn <span class="math inline">\(\theta\)</span> — adjust <span
+class="math inline">\(\sigma\)</span> — reconstruct soft labels” repeats
+until the error converges.</p>
+<p>To avoid notational ambiguity, we stipulate: <span
+class="math inline">\(p(y\mid x;\theta)\)</span> denotes the model’s
+conditional distribution depending only on <span
+class="math inline">\(\theta\)</span>; <span
+class="math inline">\(d_{y,\alpha}(\sigma)\)</span> denotes the
+normalized probability of a discrete Gaussian template over <span
+class="math inline">\(\mathcal{Y}\)</span> with mean <span
+class="math inline">\(\alpha\)</span> and standard deviation <span
+class="math inline">\(\sigma\)</span>, satisfying <span
+class="math inline">\(\sum_{y\in\mathcal{Y}}d_{y,\alpha}(\sigma)=1\)</span>,
+with the explicit form <span class="math display">\[
+d_{y,\alpha}(\sigma)\;=\;\frac{\exp\!\big(-\tfrac{(y-\alpha)^2}{2\sigma^2}\big)}{\sum_{y&#39;\in\mathcal{Y}}\exp\!\big(-\tfrac{(y&#39;-\alpha)^2}{2\sigma^2}\big)}\,.
+\]</span></p>
+<p>Formally, given the <span class="math inline">\((k\!-\!1)\)</span>-th
+round soft labels <span
 class="math inline">\(D_i^{(k-1)}=\big(d_{y,x_i}^{(k-1)}\big)_{y\in\mathcal{Y}}\)</span>,
-we first update <span class="math inline">\(\theta\)</span> as in
-standard label distribution learning: <span class="math display">\[
-\theta^{(k)} \;=\; \arg\max_{\theta}\;\sum_i\sum_{y\in\mathcal{Y}}
-d_{y,x_i}^{(k-1)}\,\log p(y\mid x_i;\theta),\qquad
-p(y\mid x;\theta)\;=\;\frac{\exp\!\big(\langle
-\theta_y,\,g(x)\rangle\big)}{\sum_{y&#39;}\exp\!\big(\langle
-\theta_{y&#39;},\,g(x)\rangle\big)}.
-\]</span> With <span class="math inline">\(\theta^{(k)}\)</span>, obtain
-point predictions <span class="math inline">\(\hat\alpha_i=\arg\max_y
-p(y\mid x_i;\theta^{(k)})\)</span> and filter reliable samples. For each
-age <span class="math inline">\(\alpha\)</span>, on its reliable set
-<span class="math inline">\(I_\alpha\)</span>, update the variance by
-minimizing the KL divergence between a Gaussian template and the model
-distribution: <span class="math display">\[
+first perform the standard label-distribution learning update for <span
+class="math inline">\(\theta\)</span>: <span class="math display">\[
+\theta^{(k)} = \arg\max_{\theta}\sum_i \sum_{y\in\mathcal{Y}}
+d_{y,x_i}^{(k-1)} \log p(y\mid x_i;\theta)
+\]</span></p>
+<p><span class="math display">\[
+p(y\mid x;\theta) = \frac{\exp\!\Big(\sum_{r}
+\theta_{y,r}\,g_r(x)\Big)}{\sum_{y&#39;}\exp\!\Big(\sum_{r}
+\theta_{y&#39;,r}\,g_r(x)\Big)}
+\]</span></p>
+<p>where <span class="math inline">\(g_r(x)\)</span> is the <span
+class="math inline">\(r\)</span>-th feature component of sample <span
+class="math inline">\(x\)</span>.</p>
+<p>Using <span class="math inline">\(\theta^{(k)}\)</span>, obtain point
+predictions <span class="math inline">\(\hat\alpha_i=\arg\max_y p(y\mid
+x_i;\theta^{(k)})\)</span> and filter reliable samples. Then, for each
+age <span class="math inline">\(\alpha\)</span>, minimize the KL
+divergence between the Gaussian template and the model distribution on
+its reliable set <span class="math inline">\(I_\alpha\)</span> to update
+the variance: <span class="math display">\[
 \sigma_\alpha^{(k)} \;=\; \arg\min_{\sigma&gt;0}\;\sum_{m\in
 I_\alpha}\sum_{y\in\mathcal{Y}}
 d_{y,\alpha}(\sigma)\,\log\frac{d_{y,\alpha}(\sigma)}{\,p(y\mid
-x_m;\theta^{(k)})\,},\qquad
-d_{y,\alpha}(\sigma)\;\propto\;\exp\!\big(-\tfrac{(y-\alpha)^2}{2\sigma^2}\big).
-\]</span> For numerical implementation, we can use a log-barrier to
-transform the <span class="math inline">\(\sigma&gt;0\)</span>
-constrained problem into an unconstrained one, yielding a 1D smooth
-objective <span class="math inline">\(F_\alpha(\sigma)\)</span> solvable
-with line search or (quasi-)Newton methods. The gradient can be derived
-from the log-derivative of <span
-class="math inline">\(q_y(\sigma)=d_{y,\alpha}(\sigma)\)</span>: <span
+x_m;\theta^{(k)})\,}.
+\]</span></p>
+<p>The log-barrier method incorporates the constraint “<span
+class="math inline">\(\sigma&gt;0\)</span>” into the objective, yielding
+an unconstrained problem defined on <span
+class="math inline">\(\sigma&gt;0\)</span>. Let <span
 class="math display">\[
+F_\alpha(\sigma)\;=\;\sum_{m\in I_\alpha}\sum_{y\in\mathcal{Y}}
+d_{y,\alpha}(\sigma)\,\log\frac{d_{y,\alpha}(\sigma)}{\,p(y\mid
+x_m;\theta^{(k)})\,},
+\]</span> then its barrier form is <span class="math display">\[
+\tilde
+F_{\alpha,\mu}(\sigma)\;=\;F_\alpha(\sigma)\;-\;\mu\,\log\sigma,\qquad
+\mu&gt;0,\ \sigma&gt;0,
+\]</span> and the original constrained optimum is approached by
+gradually decreasing <span class="math inline">\(\mu\)</span>. The first
+and second derivatives of the resulting 1D objective are <span
+class="math display">\[
+\frac{\mathrm{d}\tilde F_{\alpha,\mu}}{\mathrm{d}\sigma}
+\;=\;\frac{\mathrm{d}F_\alpha}{\mathrm{d}\sigma}\;-\;\frac{\mu}{\sigma},\qquad
+\frac{\mathrm{d}^2\tilde F_{\alpha,\mu}}{\mathrm{d}\sigma^2}
+\;=\;\frac{\mathrm{d}^2F_\alpha}{\mathrm{d}\sigma^2}\;+\;\frac{\mu}{\sigma^2}.
+\]</span></p>
+<p>For numerical implementation, write <span
+class="math inline">\(F_\alpha(\sigma)\)</span> as a smooth 1D
+objective. Its first derivative can be expressed using <span
+class="math inline">\(q_y(\sigma)=d_{y,\alpha}(\sigma)\)</span> and its
+log-derivative: <span class="math display">\[
 \frac{\mathrm{d}F_\alpha}{\mathrm{d}\sigma}
 \;=\;\sum_{y\in\mathcal{Y}} \Big(\sum_{m\in I_\alpha}\big[\log
 q_y(\sigma)-\log p(y\mid
-x_m;\theta^{(k)})+1\big]\Big)\,\frac{\mathrm{d}q_y(\sigma)}{\mathrm{d}\sigma}
-\]</span></p>
-<p><span class="math display">\[
+x_m;\theta^{(k)})+1\big]\Big)\,\frac{\mathrm{d}q_y(\sigma)}{\mathrm{d}\sigma},
+\]</span> <span class="math display">\[
 \frac{\mathrm{d}q_y(\sigma)}{\mathrm{d}\sigma}
-=q_y(\sigma)\Big(\frac{(y-\alpha)^2-\mathbb{E}_{q(\sigma)}[(Y-\alpha)^2]}{\sigma^3}\Big),
+\;=\;q_y(\sigma)\,\frac{(y-\alpha)^2-\mathbb{E}_{q(\sigma)}[(Y-\alpha)^2]}{\sigma^3},\qquad
+\mathbb{E}_{q(\sigma)}[(Y-\alpha)^2]=\sum_{y}q_y(\sigma)\,(y-\alpha)^2.
 \]</span></p>
-<p>where <span
-class="math inline">\(\mathbb{E}_{q(\sigma)}[(Y-\alpha)^2]=\sum_{y}q_y(\sigma)\,(y-\alpha)^2\)</span>.
-After obtaining <span
-class="math inline">\(\{\sigma_\alpha^{(k)}\}\)</span>, we propagate
-them back to all samples to reconstruct soft labels: <span
+<p>After adding the barrier term, the 1D optimization <span
+class="math inline">\(\min_{\sigma&gt;0}\tilde
+F_{\alpha,\mu}(\sigma)\)</span> can be solved by Newton’s method with
+backtracking line search, warm-started from the previous <span
+class="math inline">\(\sigma_\alpha^{(k-1)}\)</span>; shrink <span
+class="math inline">\(\mu\)</span> and repeat until the outer stopping
+criterion is met. Quasi-Newton methods or monotone bracketing strategies
+can also be used for the 1D search.</p>
+<p>With <span class="math inline">\(\{\sigma_\alpha^{(k)}\}\)</span>
+updated, propagate them to all samples to reconstruct soft labels <span
 class="math display">\[
 d_{y,x_i}^{(k)}\;=\;\frac{\exp\!\big(-\tfrac{(y-\alpha_i)^2}{2(\sigma_{\alpha_i}^{(k)})^2}\big)}{\sum_{y&#39;}\exp\!\big(-\tfrac{(y&#39;-\alpha_i)^2}{2(\sigma_{\alpha_i}^{(k)})^2}\big)}\,,
-\]</span> and proceed to the next round. We stop when the improvement in
-<span class="math inline">\(\mathrm{MAE}\)</span> between two
-consecutive rounds is below a threshold <span
+\]</span> and proceed to the next round. Stop when the MAE improvement
+between consecutive rounds falls below <span
 class="math inline">\(\varepsilon\)</span>. In this way, the <span
-class="math inline">\(\theta\)</span> update follows the standard
-maximum-likelihood form of label distribution learning, while the <span
-class="math inline">\(\sigma\)</span> update lets the data decide how
-much “neighbor borrowing” each age should have. The ALDL algorithm
-flowchart is shown below.</p>
+class="math inline">\(\theta\)</span>-update follows the standard
+maximum-likelihood form of label-distribution learning, while the <span
+class="math inline">\(\sigma\)</span>-update lets the data adaptively
+decide “how much neighborhood information” each age should borrow. The
+ALDL flowchart is shown below.</p>
 <p><img src="ALDL.png" /></p>
 <h2 id="quasi-newtondriven-parameter-learning">Quasi-Newton–Driven
 Parameter Learning</h2>
-<p>The training objective for the conditional probability function
-remains minimizing the distribution-level negative log-likelihood. The
-“weighted log-likelihood maximization” can be rewritten as the negative
-objective: <span class="math display">\[
-T(\theta)\;=\;\sum_{i}\log\!\sum_{j}\exp\!\Big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\Big)\;-\;\sum_{i,j}
+<p>The training objective for the conditional probability remains the
+same: minimize the distribution-level negative log-likelihood. It arises
+by rewriting the KL loss between distributions <span
+class="math display">\[
+\min_{\theta}\ \sum_{i} \mathrm{KL}\!\left(D_i^{(k-1)}\ \Big\|\
+p(\cdot\mid x_i;\theta)\right)
+\]</span></p>
+<p><span class="math display">\[
+\mathrm{KL}\!\left(D_i^{(k-1)}\ \Big\|\ p(\cdot\mid x_i;\theta)\right)
+=\sum_{j}
+d^{\,k-1}_{y_j,x_i}\,\log\frac{d^{\,k-1}_{y_j,x_i}}{\,p(y_j\mid
+x_i;\theta)\,}
+\]</span></p>
+<p>where <span class="math inline">\(i\)</span> indexes samples; <span
+class="math inline">\(j\)</span> indexes labels; <span
+class="math inline">\(d^{\,k-1}_{y_j,x_i}\)</span> is the <span
+class="math inline">\((k\!-\!1)\)</span>-th round soft-label weight of
+sample <span class="math inline">\(x_i\)</span> on label <span
+class="math inline">\(y_j\)</span>; <span
+class="math inline">\(p(y_j\mid x_i;\theta)\)</span> is the model’s
+predicted probability that <span class="math inline">\(x_i\)</span>
+belongs to label <span class="math inline">\(y_j\)</span> under
+parameters <span class="math inline">\(\theta\)</span>.</p>
+<p>This is equivalent to minimizing the weighted cross-entropy because
+<span class="math display">\[
+\sum_i \mathrm{KL}(D_i^{(k-1)}\|p_i)=\underbrace{\sum_{i,j}
+d^{\,k-1}_{y_j,x_i}\log d^{\,k-1}_{y_j,x_i}}_{\text{constant w.r.t.
+}\theta}\;-\;\sum_{i,j} d^{\,k-1}_{y_j,x_i}\,\log p(y_j\mid x_i;\theta),
+\]</span> so dropping the <span
+class="math inline">\(\theta\)</span>-independent constant yields the
+negative log-likelihood <span class="math display">\[
+T(\theta)=\sum_{i}\log\!\sum_{j}\exp\!\Big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\Big)\;-\;\sum_{i,j}
 d^{\,k-1}_{y_j,x_i}\,\sum_{r}\theta_{y_j,r}\,x_i^{(r)},
-\]</span> where <span class="math display">\[
+\]</span> with <span class="math display">\[
 p(y_j\mid
-x_i;\theta)\;=\;\frac{\exp\!\big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\big)}{\sum_{j&#39;}\exp\!\big(\sum_{r}\theta_{y_{j&#39;},r}\,x_i^{(r)}\big)}.
-\]</span> The gradient is <span class="math display">\[
+x_i;\theta)=\frac{\exp\!\big(\sum_{r}\theta_{y_j,r}\,x_i^{(r)}\big)}{\sum_{j&#39;}\exp\!\big(\sum_{r}\theta_{y_{j&#39;},r}\,x_i^{(r)}\big)}\,.
+\]</span> Its gradient is <span class="math display">\[
 \frac{\partial T(\theta)}{\partial \theta_{y_j,r}}
-\;=\;\sum_{i}p(y_j\mid x_i;\theta)\,x_i^{(r)}\;-\;\sum_{i}
+=\sum_{i}p(y_j\mid x_i;\theta)\,x_i^{(r)}-\sum_{i}
 d^{\,k-1}_{y_j,x_i}\,x_i^{(r)}.
 \]</span></p>
-<p>In the <span class="math inline">\(k\)</span>-th outer alternating
-round, we replace IIS with BFGS-ALDL for inner optimization: warm-start
-at <span class="math inline">\(\theta_{k,0}=\theta^{(k-1)}\)</span> and
-set the initial approximate inverse Hessian <span
-class="math inline">\(B_0=I\)</span>. At inner iteration <span
-class="math inline">\(l\)</span>, take the direction <span
+<p>The quasi-Newton iteration follows the standard derivation: for any
+smooth <span class="math inline">\(f(\theta)\)</span>, perform a
+second-order Taylor expansion at <span
+class="math inline">\(\theta_t\)</span> <span class="math display">\[
+f(\theta_t+\Delta)\approx f(\theta_t)+\nabla
+f(\theta_t)^\top\Delta+\tfrac12\,\Delta^\top H(\theta_t)\Delta,
+\]</span> whose minimizer satisfies the Newton equation <span
 class="math display">\[
-s_l \;=\; -\,B_{l-1}\,\nabla T(\theta_{k,l-1}),
-\]</span> find a step size <span class="math inline">\(\alpha_l\)</span>
-via a line search satisfying the strong Wolfe conditions, and update
-<span class="math display">\[
-\theta_{k,l}\;=\;\theta_{k,l-1}\;+\;\alpha_l\,s_l.
-\]</span> Then update the approximate inverse Hessian via standard BFGS.
-Let <span class="math display">\[
-y_l\;=\;\nabla T(\theta_{k,l})-\nabla T(\theta_{k,l-1}),\qquad
-\rho_l\;=\;\frac{1}{y_l^\top s_l},
-\]</span> then <span class="math display">\[
-B_l\;=\;(I-\rho_l s_l y_l^\top)\,B_{l-1}\,(I-\rho_l y_l
-s_l^\top)\;+\;\rho_l\,s_l s_l^\top.
-\]</span> We stop when the relative objective decrease or <span
-class="math inline">\(\lVert\nabla T(\theta_{k,l})\rVert_\infty\)</span>
-meets a threshold. The target here is the same as in the previous
-section; we simply replace the IIS inner solver with a quasi-Newton
-scheme of “Newton direction + strong Wolfe line search + BFGS inverse
-Hessian.”</p>
+H(\theta_t)\Delta_N=-\nabla f(\theta_t),
+\]</span> and update <span class="math display">\[
+\theta_{t+1}=\theta_t+\alpha\,\Delta_N,
+\]</span> with <span class="math inline">\(\alpha\)</span> chosen by 1D
+line search to satisfy the strong Wolfe conditions. Since forming and
+inverting <span class="math inline">\(H^{-1}\)</span> is expensive, BFGS
+maintains a symmetric positive-definite matrix <span
+class="math inline">\(B_t\approx H(\theta_t)^{-1}\)</span> to
+approximate the Newton direction: <span class="math display">\[
+s_t=-B_t\,\nabla f(\theta_t),\qquad \theta_{t+1}=\theta_t+\alpha_t s_t,
+\]</span> <span class="math display">\[
+y_t=\nabla f(\theta_{t+1})-\nabla f(\theta_t),\quad
+\rho_t=\frac{1}{y_t^\top s_t},
+\]</span> <span class="math display">\[
+B_{t+1}=(I-\rho_t s_t y_t^\top)B_t(I-\rho_t y_t s_t^\top)+\rho_t s_t
+s_t^\top,
+\]</span> and <span class="math inline">\(\alpha_t\)</span> is chosen to
+satisfy <span class="math display">\[
+f(\theta_t+\alpha_t s_t)\le f(\theta_t)+c_1\alpha_t\,\nabla
+f(\theta_t)^\top s_t,\qquad
+\big|\nabla f(\theta_t+\alpha_t s_t)^\top s_t\big|\le c_2\big|\nabla
+f(\theta_t)^\top s_t\big|
+\]</span> with <span class="math inline">\(0&lt;c_1&lt;c_2&lt;1\)</span>
+for efficiency and stability.</p>
+<p>Applied to <span class="math inline">\(T(\theta)\)</span> here: in
+the <span class="math inline">\(k\)</span>-th outer round, warm-start
+with <span class="math inline">\(\theta_{k,0}=\theta^{(k-1)}\)</span>
+and <span class="math inline">\(B_0=I\)</span>. At the <span
+class="math inline">\(l\)</span>-th inner iteration, <span
+class="math display">\[
+s_l=-B_{l-1}\nabla T(\theta_{k,l-1}),\qquad
+\theta_{k,l}=\theta_{k,l-1}+\alpha_l s_l,
+\]</span> <span class="math display">\[
+y_l=\nabla T(\theta_{k,l})-\nabla T(\theta_{k,l-1}),\qquad
+\rho_l=\frac{1}{y_l^\top s_l},
+\]</span> <span class="math display">\[
+B_l=(I-\rho_l s_l y_l^\top)B_{l-1}(I-\rho_l y_l s_l^\top)+\rho_l s_l
+s_l^\top,
+\]</span> where <span class="math inline">\(\alpha_l\)</span> is
+determined by a strong Wolfe line search. Compared with the previous
+section, the only change is replacing IIS with the quasi-Newton scheme
+“approximate Newton direction + BFGS recursion + strong Wolfe line
+search”.</p>
 <h1 id="experiments-and-analysis">Experiments and Analysis</h1>
 <p>The paper uses two standard datasets and protocols: FG-NET with LOPO
 (leave-one-person-out) and MAE evaluation, containing 82 subjects and
