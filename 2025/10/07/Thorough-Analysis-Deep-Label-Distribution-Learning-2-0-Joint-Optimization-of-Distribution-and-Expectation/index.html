@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/en-blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/en-blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/en-blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/en-blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/en-blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jiashun-ye.github.io","root":"/en-blog/","images":"/en-blog/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":500,"width_dual_column":250,"display":"hide","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":null},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/en-blog/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/en-blog/js/config.js"></script>
+
+    <meta name="description" content="This post closely reads Geng et al.’s “Age Estimation Using Expectation of Label Distribution Learning” (2018) from four angles—method, theory, engineering, and experiments. We first derive the CDF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation">
+<meta property="og:url" content="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/index.html">
+<meta property="og:site_name" content="JS.Ye’s Research Hub">
+<meta property="og:description" content="This post closely reads Geng et al.’s “Age Estimation Using Expectation of Label Distribution Learning” (2018) from four angles—method, theory, engineering, and experiments. We first derive the CDF">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-10-07T08:37:39.000Z">
+<meta property="article:modified_time" content="2025-10-07T09:39:14.788Z">
+<meta property="article:author" content="Jiashun Ye">
+<meta property="article:tag" content="Label Distribution Learning">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/","path":"2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/","title":"Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation | JS.Ye’s Research Hub</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/en-blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/en-blog/atom.xml" title="JS.Ye’s Research Hub" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/en-blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">JS.Ye’s Research Hub</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Paper Reviews, Course Notes, and Research Progress</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/en-blog/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/en-blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/en-blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/en-blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/en-blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-chinese"><a href="https://jiashun-ye.github.io/zh-blog/" rel="section"><i class="fa fa-globe fa-fw"></i>Chinese</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#joint-optimization-of-distribution-and-expectation"><span class="nav-number">1.</span> <span class="nav-text">Joint
+Optimization of Distribution and Expectation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ranking-is-essentially-learning-the-label-distribution"><span class="nav-number">1.1.</span> <span class="nav-text">Ranking
+is Essentially Learning the Label Distribution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#joint-learning-framework"><span class="nav-number">1.2.</span> <span class="nav-text">Joint Learning Framework</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lightweight-network-design"><span class="nav-number">1.3.</span> <span class="nav-text">Lightweight Network Design</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#experiments-and-results-analysis"><span class="nav-number">2.</span> <span class="nav-text">Experiments and Results
+Analysis</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jiashun Ye"
+      src="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">Jiashun Ye</p>
+  <div class="site-description" itemprop="description">Math & CS</div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="Jiashun Ye">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="JS.Ye’s Research Hub">
+      <meta itemprop="description" content="Math & CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation | JS.Ye’s Research Hub">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-10-07 16:37:39 / Modified: 17:39:14" itemprop="dateCreated datePublished" datetime="2025-10-07T16:37:39+08:00">2025-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en-blog/categories/Thorough-Analysis/" itemprop="url" rel="index"><span itemprop="name">Thorough Analysis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>This post closely reads Geng et al.’s “Age Estimation Using
+Expectation of Label Distribution Learning” (2018) from four
+angles—method, theory, engineering, and experiments. We first derive the
+CDF of the Gaussian label distribution and prove the limit equivalence
+Ranking ≈ 1 − CDF to unify the two lines; then we present a joint
+learning framework (KL + L1) and the logits gradient to explain the
+alignment with MAE; next we analyze Thin/TinyAgeNet and hybrid pooling
+for lightweighting; finally we summarize the experimental setup and
+conclusions, clarifying the robust gains of “distribution +
+expectation.”</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_iccv_2015_workshops/w11/papers/Yang_Deep_Label_Distribution_ICCV_2015_paper.pdf">Age
+Estimation Using Expectation of Label Distribution Learning</a></em></p>
+<p><em>Prerequisite posts:</em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
+Analysis | From Single Labels to Label Distributions: A New Approach for
+Facial Age Estimation</a></em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-Distributional-Supervision-and-Practical-Construction/">Thorough
+Analysis | Deep Label Distribution Learning: Distributional Supervision
+and Practical Construction</a></em></p>
+<h1 id="joint-optimization-of-distribution-and-expectation">Joint
+Optimization of Distribution and Expectation</h1>
+<h2 id="ranking-is-essentially-learning-the-label-distribution">Ranking
+is Essentially Learning the Label Distribution</h2>
+<p>Let the age random variable be <span
+class="math inline">\(A\sim\mathcal N(y,\sigma^2)\)</span>, whose
+Gaussian label distribution density is <span class="math display">\[
+f_{y,\sigma}(t)=\frac{1}{\sigma\sqrt{2\pi}}\exp\!\Big(-\frac{(t-y)^2}{2\sigma^2}\Big).
+\]</span></p>
+<p>The cumulative distribution value at the discrete grid point <span
+class="math inline">\(l_k\)</span> is <span class="math display">\[
+c_k \;=\; F(l_k)\;=\;\int_{-\infty}^{\,l_k} f_{y,\sigma}(t)\,dt.
+\]</span> With the substitution <span
+class="math inline">\(u=\frac{t-y}{\sigma\sqrt{2}}\)</span> (thus <span
+class="math inline">\(dt=\sigma\sqrt{2}\,du\)</span>), we obtain the
+standard closed form <span class="math display">\[
+c_k
+\;=\;\int_{-\infty}^{\,\frac{l_k-y}{\sigma\sqrt{2}}}\frac{1}{\sqrt{\pi}}e^{-u^2}\,du
+\;=\;\tfrac12\Big[1+\operatorname{erf}\!\Big(\frac{l_k-y}{\sigma\sqrt{2}}\Big)\Big].
+\]</span> Here <span
+class="math inline">\(\operatorname{erf}(x)\)</span> is the error
+function, defined by <span class="math display">\[
+\operatorname{erf}(x)\;=\;\frac{2}{\sqrt{\pi}}\int_{0}^{x} e^{-t^2}\,dt,
+\]</span> and it satisfies the relation with the standard normal CDF
+<span class="math inline">\(\Phi(\cdot)\)</span>: <span
+class="math inline">\(\;\Phi(z)=\tfrac12\!\big[1+\operatorname{erf}(z/\sqrt{2})\big]\)</span>.</p>
+<p>From the above we see that when <span
+class="math inline">\(l_k&lt;y\)</span> we have <span
+class="math inline">\(1-c_k&gt;0.5\)</span>, when <span
+class="math inline">\(l_k&gt;y\)</span> we have <span
+class="math inline">\(1-c_k&lt;0.5\)</span>, and at <span
+class="math inline">\(l_k=y\)</span> we have <span
+class="math inline">\(1-c_k=0.5\)</span>.</p>
+<p>Ranking supervision learns, at each threshold <span
+class="math inline">\(l_k\)</span>, the indicator of the event <span
+class="math inline">\(\{A&gt;l_k\}\)</span>. The ideal label can be
+written as <span class="math display">\[
+(p_{\mathrm{rank}})_k \;=\; \mathbf 1\{y&gt;l_k\} \;=\; 1 -
+F_{\delta_y}(l_k),
+\]</span> where <span class="math inline">\(F_{\delta_y}\)</span> is the
+CDF of the degenerate distribution concentrated at <span
+class="math inline">\(y\)</span>. Noting that the Gaussian family weakly
+converges to <span class="math inline">\(\delta_y\)</span> as <span
+class="math inline">\(\sigma\to0\)</span>, for any fixed <span
+class="math inline">\(l_k\ne y\)</span> we have the limit <span
+class="math display">\[
+\lim_{\sigma\to 0}\big[\,1-F(l_k;y,\sigma)\,\big]
+=\begin{cases}
+1, &amp; l_k&lt;y,\\[2pt]
+0, &amp; l_k&gt;y,
+\end{cases}
+\]</span> i.e., <span class="math display">\[
+\lim_{\sigma\to0}(1-c_k)\;=\;\mathbf 1\{y&gt;l_k\}.
+\]</span></p>
+<p>Therefore, <span class="math inline">\(1-\mathrm{CDF}\)</span>
+pointwise approaches the step labels of Ranking in the limit <span
+class="math inline">\(\sigma\to0\)</span>; when <span
+class="math inline">\(\sigma&gt;0\)</span>, the label distribution not
+only gives the right-tail probability relative to the threshold but also
+explicitly preserves peak shape and uncertainty through the adjustable
+<span class="math inline">\(\sigma\)</span>, hence being more expressive
+than Ranking, which provides only left/right cumulative relations.</p>
+<h2 id="joint-learning-framework">Joint Learning Framework</h2>
+<p>The goal of the joint learning framework is to learn both the label
+distribution and its expectation so that the training objective aligns
+with the evaluation MAE. Given the ground-truth age <span
+class="math inline">\(y\)</span> and a discrete grid <span
+class="math inline">\(\{l_k\}_{k=1}^{K}\)</span>, we first generate the
+label distribution on the grid using a Gaussian: <span
+class="math display">\[
+p_k \;=\;
+\frac{\exp\!\big(-\tfrac{(l_k-y)^2}{2\sigma^2}\big)}{\sum_{j=1}^{K}\exp\!\big(-\tfrac{(l_j-y)^2}{2\sigma^2}\big)}.
+\]</span> Let the features be mapped linearly to logits <span
+class="math inline">\(x\in\mathbb R^{K}\)</span>, and let the predicted
+distribution be given by softmax: <span class="math display">\[
+\hat p_k \;=\; \frac{e^{x_k}}{\sum_{j=1}^{K}e^{x_j}},
+\]</span> followed by a parameter-free expectation layer: <span
+class="math display">\[
+\hat y \;=\; \sum_{k=1}^{K}\hat p_k\,l_k.
+\]</span> The total loss combines the KL divergence on the distribution
+side with the L1 error on the expectation side: <span
+class="math display">\[
+L \;=\; \underbrace{\sum_{k=1}^{K} p_k\,\log\frac{p_k}{\hat
+p_k}}_{L_{\mathrm{ld}}}
+\;+\;
+\lambda\,\underbrace{|\hat y - y|}_{L_{\mathrm{er}}}.
+\]</span> This objective unifies “learning the shape of the
+distribution” (<span class="math inline">\(L_{\mathrm{ld}}\)</span>) and
+“learning the final age value” (<span
+class="math inline">\(L_{\mathrm{er}}\)</span>) in the same network
+end-to-end, where the expectation layer introduces no learnable
+parameters.</p>
+<p>The gradient of the joint loss with respect to the logits can be
+written explicitly. Note that the gradient of <span
+class="math inline">\(L_{\mathrm{ld}}\)</span> with respect to <span
+class="math inline">\(x\)</span> is <span class="math inline">\(\hat p -
+p\)</span>, and since <span class="math inline">\(\hat y=\sum_k \hat p_k
+l_k\)</span> and <span class="math inline">\(\tfrac{\partial \hat
+p_k}{\partial x_i}=\hat p_k(\mathbf 1\{i=k\}-\hat p_i)\)</span>, we have
+<span class="math display">\[
+\frac{\partial \hat y}{\partial x_i}
+=\sum_{k=1}^{K} l_k\,\frac{\partial \hat p_k}{\partial x_i}
+=\hat p_i\,(l_i-\hat y),
+\]</span> and with <span class="math inline">\(L_{\mathrm{er}}=|\hat
+y-y|\)</span> we have <span class="math inline">\(\tfrac{\partial
+L_{\mathrm{er}}}{\partial \hat y}=\operatorname{sign}(\hat
+y-y)\)</span>, yielding the total gradient <span class="math display">\[
+\frac{\partial L}{\partial x_i}
+\;=\;
+\hat p_i - p_i
+\;+\;
+\lambda\,\operatorname{sign}(\hat y-y)\,\hat p_i\,(l_i-\hat y),
+\qquad i=1,\dots,K.
+\]</span> We see that the distribution term and the expectation term are
+naturally coupled at the logits: the first term pushes <span
+class="math inline">\(\hat p\)</span> toward the label distribution
+<span class="math inline">\(p\)</span>, while the second term
+redistributes probability mass along the age axis according to the
+deviation between <span class="math inline">\(\hat y\)</span> and <span
+class="math inline">\(y\)</span>. As <span
+class="math inline">\(\lambda\!\to\!0\)</span> this degenerates to pure
+distribution learning as in DLDL; if only the expectation term is kept,
+it is equivalent to parameter-free expectation regression over softmax
+probabilities. During training, use the above to backpropagate through
+the network as usual; during inference, directly read <span
+class="math inline">\(\hat y\)</span> as the predicted age (optionally
+averaging predictions from the original image and its horizontal
+flip).</p>
+<h2 id="lightweight-network-design">Lightweight Network Design</h2>
+<p>The motivation for lightweight network design is to maintain—or even
+improve—the effectiveness of joint training of distribution learning and
+expectation regression with smaller model capacity and compute. In
+practice, we start from VGG16 and slim it structurally: first remove all
+fully connected layers to avoid massive parameters from high-dimensional
+vector–to–class space mappings; next, replace the “conv—flatten—FC”
+route with hybrid pooling, obtaining a compact representation by
+combining global average pooling and global max pooling, then attach a
+linear mapping and softmax to output the distribution and connect the
+expectation layer. The convolutional part uniformly reduces channels per
+stage and inserts batch normalization after each convolution to
+stabilize training and alleviate optimization difficulties caused by
+reduced capacity. These changes together allow ThinAgeNet and TinyAgeNet
+to significantly reduce parameter count and memory bandwidth consumption
+without sacrificing representational completeness, while improving
+inference throughput.</p>
+<p>The motivation for hybrid pooling is to avoid over-smoothing of
+strong responses by single global average pooling, while global max
+pooling retains activation peaks of salient regions. Their combination
+provides a more robust global description for fine-grained tasks like
+age estimation and can directly replace expensive fully connected layers
+without clearly increasing overfitting risk. The accompanying channel
+reduction and batch normalization strike a more reasonable balance
+between effective capacity and optimization difficulty, yielding a more
+stable convergence path for the joint loss.</p>
+<p>In terms of scale and efficiency, this design reduces the parameter
+count from the traditional VGG16 level to a few million (ThinAgeNet ≈
+3.7M, TinyAgeNet ≈ 0.9M), while delivering multi-fold inference speedups
+(≈ 2.6× and 5.5×). The joint learning framework on these backbones still
+achieves error comparable to or better than large models. Therefore, the
+lightweight backbone is not an engineering add-on independent of the
+method, but a structural choice adapted to the end-to-end goal of
+“distribution + expectation”: by reducing redundant parameters and
+improving the effectiveness and stability of feature aggregation, it
+provides sufficient—but not excessive—representational power for both
+distribution fitting and expectation regression.</p>
+<h1 id="experiments-and-results-analysis">Experiments and Results
+Analysis</h1>
+<p>Experimental setup: The authors evaluate on three benchmark datasets:
+ChaLearn15 and ChaLearn16 are in-the-wild apparent age datasets, each
+image annotated with a mean and standard deviation; Morph is a larger
+real age dataset. ChaLearn15 follows the official train/val/test split;
+ChaLearn16 trains on the official train+val and reports on the test set;
+Morph is randomly split 80%/20% for train/test as commonly done. The
+primary metric is MAE, and ε-error is also reported for the ChaLearn
+challenge datasets. Implementation uses the lightweight backbones
+ThinAgeNet/TinyAgeNet with aligned and standardized face inputs and
+standard data augmentation during training; the network head linearly
+maps to logits, uses softmax to output the predicted age distribution,
+then a parameter-free expectation layer to obtain a scalar age, and is
+optimized end-to-end with the joint loss of KL (distribution side) + L1
+(expectation side). At inference, run once on the original image and
+once on the horizontal flip and average.</p>
+<p>Results analysis: Overall comparisons show that DLDL-v2 pushes the
+single-model MAE on Morph down to 1.969, the first report below two
+years; without using external age annotations, it also achieves
+performance on ChaLearn15/16 that matches or surpasses contemporaneous
+methods. The lightweight backbones substantially reduce complexity:
+ThinAgeNet has about 3.7M parameters and TinyAgeNet about 0.9M, roughly
+36×/150× smaller than VGG16-based DEX/DLDL, with forward throughput
+improved by about 2.6×/5.5×. Ablations show both engineering strategies
+are consistently effective: data augmentation significantly improves MAE
+on both apparent and Morph datasets, and hybrid pooling further reduces
+error across all three datasets compared with global average pooling
+alone. Comparisons with strong baselines also support the paper’s
+theoretical reading: Ranking and DLDL clearly outperform direct
+regression and DEX, and DLDL is slightly better than Ranking, consistent
+with the conclusion that label distributions carry more information than
+Ranking. With joint optimization of “distribution + expectation,” the
+overall best results are obtained, indicating that aligning the training
+objective with the evaluation metric is key. Hyperparameter sweeps show
+the method is insensitive to <span
+class="math inline">\(\lambda\)</span> and age step size over a fairly
+wide range, exhibiting good tunability and deployability.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/en-blog/tags/Label-Distribution-Learning/" rel="tag"># Label Distribution Learning</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-Distributional-Supervision-and-Practical-Construction/" rel="prev" title="Thorough Analysis | Deep Label Distribution Learning: Distributional Supervision and Practical Construction">
+                  <i class="fa fa-angle-left"></i> Thorough Analysis | Deep Label Distribution Learning: Distributional Supervision and Practical Construction
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Jiashun Ye</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/comments.js"></script><script src="/en-blog/js/utils.js"></script><script src="/en-blog/js/motion.js"></script><script src="/en-blog/js/sidebar.js"></script><script src="/en-blog/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/en-blog/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/en-blog/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

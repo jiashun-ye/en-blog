@@ -167,6 +167,243 @@ multi-domain training may affect generalization.</p>
       </tags>
   </entry>
   <entry>
+    <title>Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation</title>
+    <url>/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/</url>
+    <content><![CDATA[<p>This post closely reads Geng et al.’s “Age Estimation Using
+Expectation of Label Distribution Learning” (2018) from four
+angles—method, theory, engineering, and experiments. We first derive the
+CDF of the Gaussian label distribution and prove the limit equivalence
+Ranking ≈ 1 − CDF to unify the two lines; then we present a joint
+learning framework (KL + L1) and the logits gradient to explain the
+alignment with MAE; next we analyze Thin/TinyAgeNet and hybrid pooling
+for lightweighting; finally we summarize the experimental setup and
+conclusions, clarifying the robust gains of “distribution +
+expectation.”</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+href="https://openaccess.thecvf.com/content_iccv_2015_workshops/w11/papers/Yang_Deep_Label_Distribution_ICCV_2015_paper.pdf">Age
+Estimation Using Expectation of Label Distribution Learning</a></em></p>
+<p><em>Prerequisite posts:</em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
+Analysis | From Single Labels to Label Distributions: A New Approach for
+Facial Age Estimation</a></em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-Distributional-Supervision-and-Practical-Construction/">Thorough
+Analysis | Deep Label Distribution Learning: Distributional Supervision
+and Practical Construction</a></em></p>
+<h1 id="joint-optimization-of-distribution-and-expectation">Joint
+Optimization of Distribution and Expectation</h1>
+<h2 id="ranking-is-essentially-learning-the-label-distribution">Ranking
+is Essentially Learning the Label Distribution</h2>
+<p>Let the age random variable be <span
+class="math inline">\(A\sim\mathcal N(y,\sigma^2)\)</span>, whose
+Gaussian label distribution density is <span class="math display">\[
+f_{y,\sigma}(t)=\frac{1}{\sigma\sqrt{2\pi}}\exp\!\Big(-\frac{(t-y)^2}{2\sigma^2}\Big).
+\]</span></p>
+<p>The cumulative distribution value at the discrete grid point <span
+class="math inline">\(l_k\)</span> is <span class="math display">\[
+c_k \;=\; F(l_k)\;=\;\int_{-\infty}^{\,l_k} f_{y,\sigma}(t)\,dt.
+\]</span> With the substitution <span
+class="math inline">\(u=\frac{t-y}{\sigma\sqrt{2}}\)</span> (thus <span
+class="math inline">\(dt=\sigma\sqrt{2}\,du\)</span>), we obtain the
+standard closed form <span class="math display">\[
+c_k
+\;=\;\int_{-\infty}^{\,\frac{l_k-y}{\sigma\sqrt{2}}}\frac{1}{\sqrt{\pi}}e^{-u^2}\,du
+\;=\;\tfrac12\Big[1+\operatorname{erf}\!\Big(\frac{l_k-y}{\sigma\sqrt{2}}\Big)\Big].
+\]</span> Here <span
+class="math inline">\(\operatorname{erf}(x)\)</span> is the error
+function, defined by <span class="math display">\[
+\operatorname{erf}(x)\;=\;\frac{2}{\sqrt{\pi}}\int_{0}^{x} e^{-t^2}\,dt,
+\]</span> and it satisfies the relation with the standard normal CDF
+<span class="math inline">\(\Phi(\cdot)\)</span>: <span
+class="math inline">\(\;\Phi(z)=\tfrac12\!\big[1+\operatorname{erf}(z/\sqrt{2})\big]\)</span>.</p>
+<p>From the above we see that when <span
+class="math inline">\(l_k&lt;y\)</span> we have <span
+class="math inline">\(1-c_k&gt;0.5\)</span>, when <span
+class="math inline">\(l_k&gt;y\)</span> we have <span
+class="math inline">\(1-c_k&lt;0.5\)</span>, and at <span
+class="math inline">\(l_k=y\)</span> we have <span
+class="math inline">\(1-c_k=0.5\)</span>.</p>
+<p>Ranking supervision learns, at each threshold <span
+class="math inline">\(l_k\)</span>, the indicator of the event <span
+class="math inline">\(\{A&gt;l_k\}\)</span>. The ideal label can be
+written as <span class="math display">\[
+(p_{\mathrm{rank}})_k \;=\; \mathbf 1\{y&gt;l_k\} \;=\; 1 -
+F_{\delta_y}(l_k),
+\]</span> where <span class="math inline">\(F_{\delta_y}\)</span> is the
+CDF of the degenerate distribution concentrated at <span
+class="math inline">\(y\)</span>. Noting that the Gaussian family weakly
+converges to <span class="math inline">\(\delta_y\)</span> as <span
+class="math inline">\(\sigma\to0\)</span>, for any fixed <span
+class="math inline">\(l_k\ne y\)</span> we have the limit <span
+class="math display">\[
+\lim_{\sigma\to 0}\big[\,1-F(l_k;y,\sigma)\,\big]
+=\begin{cases}
+1, &amp; l_k&lt;y,\\[2pt]
+0, &amp; l_k&gt;y,
+\end{cases}
+\]</span> i.e., <span class="math display">\[
+\lim_{\sigma\to0}(1-c_k)\;=\;\mathbf 1\{y&gt;l_k\}.
+\]</span></p>
+<p>Therefore, <span class="math inline">\(1-\mathrm{CDF}\)</span>
+pointwise approaches the step labels of Ranking in the limit <span
+class="math inline">\(\sigma\to0\)</span>; when <span
+class="math inline">\(\sigma&gt;0\)</span>, the label distribution not
+only gives the right-tail probability relative to the threshold but also
+explicitly preserves peak shape and uncertainty through the adjustable
+<span class="math inline">\(\sigma\)</span>, hence being more expressive
+than Ranking, which provides only left/right cumulative relations.</p>
+<h2 id="joint-learning-framework">Joint Learning Framework</h2>
+<p>The goal of the joint learning framework is to learn both the label
+distribution and its expectation so that the training objective aligns
+with the evaluation MAE. Given the ground-truth age <span
+class="math inline">\(y\)</span> and a discrete grid <span
+class="math inline">\(\{l_k\}_{k=1}^{K}\)</span>, we first generate the
+label distribution on the grid using a Gaussian: <span
+class="math display">\[
+p_k \;=\;
+\frac{\exp\!\big(-\tfrac{(l_k-y)^2}{2\sigma^2}\big)}{\sum_{j=1}^{K}\exp\!\big(-\tfrac{(l_j-y)^2}{2\sigma^2}\big)}.
+\]</span> Let the features be mapped linearly to logits <span
+class="math inline">\(x\in\mathbb R^{K}\)</span>, and let the predicted
+distribution be given by softmax: <span class="math display">\[
+\hat p_k \;=\; \frac{e^{x_k}}{\sum_{j=1}^{K}e^{x_j}},
+\]</span> followed by a parameter-free expectation layer: <span
+class="math display">\[
+\hat y \;=\; \sum_{k=1}^{K}\hat p_k\,l_k.
+\]</span> The total loss combines the KL divergence on the distribution
+side with the L1 error on the expectation side: <span
+class="math display">\[
+L \;=\; \underbrace{\sum_{k=1}^{K} p_k\,\log\frac{p_k}{\hat
+p_k}}_{L_{\mathrm{ld}}}
+\;+\;
+\lambda\,\underbrace{|\hat y - y|}_{L_{\mathrm{er}}}.
+\]</span> This objective unifies “learning the shape of the
+distribution” (<span class="math inline">\(L_{\mathrm{ld}}\)</span>) and
+“learning the final age value” (<span
+class="math inline">\(L_{\mathrm{er}}\)</span>) in the same network
+end-to-end, where the expectation layer introduces no learnable
+parameters.</p>
+<p>The gradient of the joint loss with respect to the logits can be
+written explicitly. Note that the gradient of <span
+class="math inline">\(L_{\mathrm{ld}}\)</span> with respect to <span
+class="math inline">\(x\)</span> is <span class="math inline">\(\hat p -
+p\)</span>, and since <span class="math inline">\(\hat y=\sum_k \hat p_k
+l_k\)</span> and <span class="math inline">\(\tfrac{\partial \hat
+p_k}{\partial x_i}=\hat p_k(\mathbf 1\{i=k\}-\hat p_i)\)</span>, we have
+<span class="math display">\[
+\frac{\partial \hat y}{\partial x_i}
+=\sum_{k=1}^{K} l_k\,\frac{\partial \hat p_k}{\partial x_i}
+=\hat p_i\,(l_i-\hat y),
+\]</span> and with <span class="math inline">\(L_{\mathrm{er}}=|\hat
+y-y|\)</span> we have <span class="math inline">\(\tfrac{\partial
+L_{\mathrm{er}}}{\partial \hat y}=\operatorname{sign}(\hat
+y-y)\)</span>, yielding the total gradient <span class="math display">\[
+\frac{\partial L}{\partial x_i}
+\;=\;
+\hat p_i - p_i
+\;+\;
+\lambda\,\operatorname{sign}(\hat y-y)\,\hat p_i\,(l_i-\hat y),
+\qquad i=1,\dots,K.
+\]</span> We see that the distribution term and the expectation term are
+naturally coupled at the logits: the first term pushes <span
+class="math inline">\(\hat p\)</span> toward the label distribution
+<span class="math inline">\(p\)</span>, while the second term
+redistributes probability mass along the age axis according to the
+deviation between <span class="math inline">\(\hat y\)</span> and <span
+class="math inline">\(y\)</span>. As <span
+class="math inline">\(\lambda\!\to\!0\)</span> this degenerates to pure
+distribution learning as in DLDL; if only the expectation term is kept,
+it is equivalent to parameter-free expectation regression over softmax
+probabilities. During training, use the above to backpropagate through
+the network as usual; during inference, directly read <span
+class="math inline">\(\hat y\)</span> as the predicted age (optionally
+averaging predictions from the original image and its horizontal
+flip).</p>
+<h2 id="lightweight-network-design">Lightweight Network Design</h2>
+<p>The motivation for lightweight network design is to maintain—or even
+improve—the effectiveness of joint training of distribution learning and
+expectation regression with smaller model capacity and compute. In
+practice, we start from VGG16 and slim it structurally: first remove all
+fully connected layers to avoid massive parameters from high-dimensional
+vector–to–class space mappings; next, replace the “conv—flatten—FC”
+route with hybrid pooling, obtaining a compact representation by
+combining global average pooling and global max pooling, then attach a
+linear mapping and softmax to output the distribution and connect the
+expectation layer. The convolutional part uniformly reduces channels per
+stage and inserts batch normalization after each convolution to
+stabilize training and alleviate optimization difficulties caused by
+reduced capacity. These changes together allow ThinAgeNet and TinyAgeNet
+to significantly reduce parameter count and memory bandwidth consumption
+without sacrificing representational completeness, while improving
+inference throughput.</p>
+<p>The motivation for hybrid pooling is to avoid over-smoothing of
+strong responses by single global average pooling, while global max
+pooling retains activation peaks of salient regions. Their combination
+provides a more robust global description for fine-grained tasks like
+age estimation and can directly replace expensive fully connected layers
+without clearly increasing overfitting risk. The accompanying channel
+reduction and batch normalization strike a more reasonable balance
+between effective capacity and optimization difficulty, yielding a more
+stable convergence path for the joint loss.</p>
+<p>In terms of scale and efficiency, this design reduces the parameter
+count from the traditional VGG16 level to a few million (ThinAgeNet ≈
+3.7M, TinyAgeNet ≈ 0.9M), while delivering multi-fold inference speedups
+(≈ 2.6× and 5.5×). The joint learning framework on these backbones still
+achieves error comparable to or better than large models. Therefore, the
+lightweight backbone is not an engineering add-on independent of the
+method, but a structural choice adapted to the end-to-end goal of
+“distribution + expectation”: by reducing redundant parameters and
+improving the effectiveness and stability of feature aggregation, it
+provides sufficient—but not excessive—representational power for both
+distribution fitting and expectation regression.</p>
+<h1 id="experiments-and-results-analysis">Experiments and Results
+Analysis</h1>
+<p>Experimental setup: The authors evaluate on three benchmark datasets:
+ChaLearn15 and ChaLearn16 are in-the-wild apparent age datasets, each
+image annotated with a mean and standard deviation; Morph is a larger
+real age dataset. ChaLearn15 follows the official train/val/test split;
+ChaLearn16 trains on the official train+val and reports on the test set;
+Morph is randomly split 80%/20% for train/test as commonly done. The
+primary metric is MAE, and ε-error is also reported for the ChaLearn
+challenge datasets. Implementation uses the lightweight backbones
+ThinAgeNet/TinyAgeNet with aligned and standardized face inputs and
+standard data augmentation during training; the network head linearly
+maps to logits, uses softmax to output the predicted age distribution,
+then a parameter-free expectation layer to obtain a scalar age, and is
+optimized end-to-end with the joint loss of KL (distribution side) + L1
+(expectation side). At inference, run once on the original image and
+once on the horizontal flip and average.</p>
+<p>Results analysis: Overall comparisons show that DLDL-v2 pushes the
+single-model MAE on Morph down to 1.969, the first report below two
+years; without using external age annotations, it also achieves
+performance on ChaLearn15/16 that matches or surpasses contemporaneous
+methods. The lightweight backbones substantially reduce complexity:
+ThinAgeNet has about 3.7M parameters and TinyAgeNet about 0.9M, roughly
+36×/150× smaller than VGG16-based DEX/DLDL, with forward throughput
+improved by about 2.6×/5.5×. Ablations show both engineering strategies
+are consistently effective: data augmentation significantly improves MAE
+on both apparent and Morph datasets, and hybrid pooling further reduces
+error across all three datasets compared with global average pooling
+alone. Comparisons with strong baselines also support the paper’s
+theoretical reading: Ranking and DLDL clearly outperform direct
+regression and DEX, and DLDL is slightly better than Ranking, consistent
+with the conclusion that label distributions carry more information than
+Ranking. With joint optimization of “distribution + expectation,” the
+overall best results are obtained, indicating that aligning the training
+objective with the evaluation metric is key. Hyperparameter sweeps show
+the method is insensitive to <span
+class="math inline">\(\lambda\)</span> and age step size over a fairly
+wide range, exhibiting good tunability and deployability.</p>
+]]></content>
+      <categories>
+        <category>Thorough Analysis</category>
+      </categories>
+      <tags>
+        <tag>Label Distribution Learning</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Thorough Analysis | End-to-End Label Distribution Learning: Breaking Fixed Functional-Form Constraints</title>
     <url>/en-blog/2025/09/11/Thorough-Analysis-End-to-End-Label-Distribution-Learning-Breaking-Fixed-Functional-Form-Constraints/</url>
     <content><![CDATA[<p>This post presents a thorough reading of the 2013 paper <em>Facial
