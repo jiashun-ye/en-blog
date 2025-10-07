@@ -27,7 +27,7 @@
 <meta property="og:description" content="This post presents a thorough reading of the 2013 paper Facial Age Estimation by Learning from Label Distributions by Xin Geng et al. The work extends the 2011 label distribution learning (LDL) fra">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-09-11T10:47:46.000Z">
-<meta property="article:modified_time" content="2025-09-18T11:21:47.240Z">
+<meta property="article:modified_time" content="2025-10-07T06:54:27.893Z">
 <meta property="article:author" content="Jiashun Ye">
 <meta property="article:tag" content="Label Distribution Learning">
 <meta name="twitter:card" content="summary">
@@ -210,7 +210,7 @@ Probability Modeling</span></a></li><li class="nav-item nav-level-1"><a class="n
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-09-18 19:21:47" itemprop="dateModified" datetime="2025-09-18T19:21:47+08:00">2025-09-18</time>
+      <time title="Modified: 2025-10-07 14:54:27" itemprop="dateModified" datetime="2025-10-07T14:54:27+08:00">2025-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -251,58 +251,78 @@ Facial Age Estimation</a></em></p>
 <p>Based on the maximum-entropy model, IIS-LLD needs to pre-specify an
 exponential-family form for the conditional probability distribution;
 this assumption has limitations and can lead to model misspecification.
-To overcome this, the paper proposes CPNN, which models (p(yx))
-end-to-end with neural networks, avoids any specific functional-form
-assumptions, and leverages label-distribution supervision to achieve
-more flexible and accurate age estimation.</p>
+To overcome this, the paper proposes CPNN, which models <span
+class="math inline">\(p(y\mid x)\)</span> end-to-end with neural
+networks, avoids any specific functional-form assumptions, and leverages
+label-distribution supervision to achieve more flexible and accurate age
+estimation.</p>
 <h1 id="flexible-conditional-probability-modeling">Flexible Conditional
 Probability Modeling</h1>
-<p>The goal is to directly learn the conditional distribution (p(yx)).
-Let the input feature be (x^q), the discrete age set (Y={y_1,,y_c}), and
-the given training-time label distribution be (D_x(y)). Unlike the
-maximum-entropy model (p(yx;)!(,(x,y))), a three-layer perceptron
-directly parameterizes (p(yx)) to improve nonlinear fitting capacity and
-avoid model misspecification. This is the CPNN algorithm.</p>
-<p>A straightforward design would feed (x^q) and output a length-(c) age
-distribution in one shot, but that introduces (O(H!!c)) parameters in
-the last layer (with (H) the number of hidden units) and is hard to
-train robustly with limited data. Instead, the age (y) is also treated
-as input. Using a shared-parameter function <span
-class="math display">\[
+<p>The goal is to directly learn the conditional distribution <span
+class="math inline">\(p(y\mid x)\)</span>. Let the input feature be
+<span class="math inline">\(x\in\mathbb{R}^q\)</span>, the discrete age
+set <span class="math inline">\(\mathcal Y=\{y_1,\dots,y_c\}\)</span>,
+and the given training-time label distribution be <span
+class="math inline">\(D_x(y)\)</span>. Unlike the maximum-entropy model
+<span class="math inline">\(p(y\mid x;\theta)\propto
+\exp\!\big(\langle\theta,\phi(x,y)\rangle\big)\)</span>, a three-layer
+perceptron directly parameterizes <span class="math inline">\(p(y\mid
+x)\)</span> to improve nonlinear fitting capacity and avoid model
+misspecification. This is the CPNN algorithm.</p>
+<p>A straightforward design would feed <span
+class="math inline">\(x\in\mathbb{R}^q\)</span> and output a
+length-<span class="math inline">\(c\)</span> age distribution in one
+shot, but that introduces <span class="math inline">\(\mathcal
+O(H\!\cdot\!c)\)</span> parameters in the last layer (with <span
+class="math inline">\(H\)</span> the number of hidden units) and is hard
+to train robustly with limited data. Instead, the age <span
+class="math inline">\(y\)</span> is also treated as input. Using a
+shared-parameter function <span class="math display">\[
 f_\theta(x,y)=\mathrm{MLP}_\theta\!\big([\;x,\
 \mathrm{enc}(y)\;]\big)\in\mathbb{R},
-\]</span> we enumerate all candidate ages (yY) for the same image to
-obtain ({f_(x,y)}_{yY}), and then apply exponential normalization to get
-<span class="math display">\[
+\]</span> we enumerate all candidate ages <span
+class="math inline">\(y\in\mathcal Y\)</span> for the same image to
+obtain <span class="math inline">\(\{f_\theta(x,y)\}_{y\in\mathcal
+Y}\)</span>, and then apply exponential normalization to get <span
+class="math display">\[
 p_\theta(y\mid
 x)=\frac{\exp\!\big(f_\theta(x,y)\big)}{\sum_{y&#39;\in\mathcal
 Y}\exp\!\big(f_\theta(x,y&#39;)\big)}.
-\]</span> This “(y)-as-input, single scalar output” design preserves the
-softmax normalization while markedly reducing parameter count and
-naturally sharing parameters across neighboring ages.</p>
+\]</span> This “<span class="math inline">\(y\)</span>-as-input, single
+scalar output” design preserves the softmax normalization while markedly
+reducing parameter count and naturally sharing parameters across
+neighboring ages.</p>
 <p>The training objective is the distribution-level cross-entropy <span
 class="math display">\[
 \mathcal L(\theta)=-\sum_{y\in\mathcal Y} D_x(y)\,\log p_\theta(y\mid
 x),\qquad
 p_\theta(y\mid
 x)=\frac{\exp(f_\theta(x,y))}{\sum_{y&#39;}\exp(f_\theta(x,y&#39;))}.
-\]</span> Its top-layer gradient is (L/f_(x,y)=p_(yx)-D_x(y)). In
-backpropagation, the output layer is linear,
-(f_(x,y)=<em>{m=1}<sup>{M_2}<em>{31m},z^{(2)}<em>m(x,y)), where
-(z^{(2)}<em>m=G(I</em>{2m})) is the (m)-th hidden unit output,
-(I</em>{2m}=</em>{k=0}</sup>{M_1}</em>{2mk},u_k) is its net input,
-(u=[1,x,(y)]) concatenates the bias, features, and age encoding, (G) is
-sigmoid with derivative (G'). With (<em>{31m}) the hidden-to-output
-weights and (</em>{2mk}) the input-to-hidden weights, we have <span
-class="math display">\[
+\]</span> Its top-layer gradient is <span class="math inline">\(\partial
+\mathcal L/\partial f_\theta(x,y)=p_\theta(y\mid x)-D_x(y)\)</span>. In
+backpropagation, the output layer is linear, <span
+class="math inline">\(f_\theta(x,y)=\sum_{m=1}^{M_2}\theta_{31m}\,z^{(2)}_m(x,y)\)</span>,
+where <span class="math inline">\(z^{(2)}_m=G(I_{2m})\)</span> is the
+<span class="math inline">\(m\)</span>-th hidden unit output, <span
+class="math inline">\(I_{2m}=\sum_{k=0}^{M_1}\theta_{2mk}\,u_k\)</span>
+is its net input, <span
+class="math inline">\(u=[1,x,\mathrm{enc}(y)]\)</span> concatenates the
+bias, features, and age encoding, <span class="math inline">\(G\)</span>
+is sigmoid with derivative <span class="math inline">\(G&#39;\)</span>.
+With <span class="math inline">\(\theta_{31m}\)</span> the
+hidden-to-output weights and <span
+class="math inline">\(\theta_{2mk}\)</span> the input-to-hidden weights,
+we have <span class="math display">\[
 \frac{\partial \mathcal L}{\partial \theta_{31m}}
 =\sum_{y\in\mathcal Y}\big(p_\theta(y\mid
 x)-D_x(y)\big)\,z^{(2)}_m(x,y),\qquad
-\]</span> <span class="math display">\[
+\]</span></p>
+<p><span class="math display">\[
 \frac{\partial \mathcal L}{\partial \theta_{2mk}}
 =\sum_{y\in\mathcal Y}\big(p_\theta(y\mid
 x)-D_x(y)\big)\,\theta_{31m}\,G&#39;(I_{2m}(x,y))\,u_k(x,y),
-\]</span> and in practice standard BP suffices for training.</p>
+\]</span></p>
+<p>and in practice standard BP suffices for training.</p>
 <h1 id="experiments-and-results">Experiments and Results</h1>
 <p>FG-NET uses LOPO validation with MAE; the images come from 82
 subjects with 1002 images in total, ages 0–69. MORPH uses 10-fold
@@ -313,9 +333,10 @@ Model to extract joint shape and grayscale features and takes the first
 applies Marginal Fisher Analysis (MFA) to reduce to 200 dimensions,
 enabling a fair comparison at the same dimensionality.</p>
 <p>As this article focuses on CPNN, we only report its performance. The
-network is a three-layer perceptron with 400 hidden units; age (y) is
-concatenated with image features as input, softmax produces (p(yx)), and
-the model is trained with distribution-level cross-entropy. Label
+network is a three-layer perceptron with 400 hidden units; age <span
+class="math inline">\(y\)</span> is concatenated with image features as
+input, softmax produces <span class="math inline">\(p(y\mid x)\)</span>,
+and the model is trained with distribution-level cross-entropy. Label
 distributions include three ablations: Gaussian, Triangle, and Single
 (degenerate), to quantify the “soft supervision” from neighboring ages.
 Compared with IIS-LLD under the same features and protocols, CPNN
@@ -323,13 +344,18 @@ achieves lower average error but is more data-dependent with slightly
 higher variance, while IIS-LLD is more stable and faster due to its
 maximum-entropy shape prior and coordinate-wise incremental updates; in
 data-reduction experiments, IIS-LLD exhibits a smoother curve. Focusing
-on CPNN’s ablations, setting Gaussian () and Triangle base (l) too
-narrow (approaching Single) weakens neighboring supervision, while too
-wide dilutes the primary label; a moderate width is best (empirically
-(!!2), (l!!6)). Here, “more pronounced gains in the elderly sparse
-range” means that relative to age ranges with abundant young samples,
-and relative to baselines such as Single and AGES, the relative
-improvement in elderly ranges (e.g., 60–69) is larger.</p>
+on CPNN’s ablations, setting Gaussian <span
+class="math inline">\(\sigma\)</span> and Triangle base <span
+class="math inline">\(l\)</span> too narrow (approaching Single) weakens
+neighboring supervision, while too wide dilutes the primary label; a
+moderate width is best (empirically <span
+class="math inline">\(\sigma\!\approx\!2\)</span>, <span
+class="math inline">\(l\!\approx\!6\)</span>). Here, “more pronounced
+gains in the elderly sparse range” means that relative to age ranges
+with abundant young samples, and relative to baselines such as Single
+and AGES, the relative improvement in elderly ranges (e.g., 60–69) is
+larger.</p>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -357,11 +383,11 @@ improvement in elderly ranges (e.g., 60–69) is larger.</p>
       <tr>
         <td>IIS-LLD</td>
         <td>Maximum-entropy shape prior brings stability; coordinate-wise incremental updates converge faster; smoother curves when training data is reduced</td>
-        <td>Pre-specified \(p(y|x)\) shape may mismatch the task; parameters are learned per label, under-utilizing cross-label correlations</td>
+        <td>Pre-specified $p(y|x)$ shape may mismatch the task; parameters are learned per label, under-utilizing cross-label correlations</td>
       </tr>
       <tr>
         <td>CPNN</td>
-        <td>No assumed shape for \(p(y|x)\), more flexible expression; all labels share parameters, explicitly exploiting neighboring-age correlation; lower average error</td>
+        <td>No assumed shape for $p(y|x)$, more flexible expression; all labels share parameters, explicitly exploiting neighboring-age correlation; lower average error</td>
         <td>More data-dependent with slightly higher variance; end-to-end training is slower and needs regularization plus moderate distribution width to curb overfitting</td>
       </tr>
     </tbody>
@@ -369,22 +395,24 @@ improvement in elderly ranges (e.g., 60–69) is larger.</p>
 </body>
 </html>
 
-<p>Causally, CPNN directly models (p(y|x)) and shares parameters across
-all labels, injecting the “neighboring ages are similar” structure into
-the network via soft supervision. With a proper distribution width, it
+<p>Causally, CPNN directly models <span
+class="math inline">\(p(y|x)\)</span> and shares parameters across all
+labels, injecting the “neighboring ages are similar” structure into the
+network via soft supervision. With a proper distribution width, it
 achieves lower MAE when data is relatively sufficient or features are
 strong; the higher flexibility also makes it more sensitive to data
-scale, with slightly higher variance. IIS-LLD fixes (p(y|x)) to an
-exponential-family form under maximum entropy and optimizes a lower
-bound via coordinate-wise increments, yielding more controllable updates
-and better computational efficiency; thus, it often suits scenarios with
-limited data that demand robustness and efficiency. However, this shape
-constraint limits absorption of cross-label correlations, so in
-large-data or strong-feature settings, its average error typically
-trails CPNN. In practice: if you aim for peak accuracy and have the
-resources, prefer CPNN with appropriate ()/(l) and regularization; if
-you prioritize training/inference efficiency or face limited data,
-prefer IIS-LLD.</p>
+scale, with slightly higher variance. IIS-LLD fixes <span
+class="math inline">\(p(y|x)\)</span> to an exponential-family form
+under maximum entropy and optimizes a lower bound via coordinate-wise
+increments, yielding more controllable updates and better computational
+efficiency; thus, it often suits scenarios with limited data that demand
+robustness and efficiency. However, this shape constraint limits
+absorption of cross-label correlations, so in large-data or
+strong-feature settings, its average error typically trails CPNN. In
+practice: if you aim for peak accuracy and have the resources, prefer
+CPNN with appropriate <span class="math inline">\(\sigma\)</span>/<span
+class="math inline">\(l\)</span> and regularization; if you prioritize
+training/inference efficiency or face limited data, prefer IIS-LLD.</p>
 
     </div>
 
