@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://jiashun-ye.github.io/en-blog/2025/10/08/Thorough-Analysis-From-Static-to-Temporal-Individualized-Aging-Trajectories-and-Label-Distribution-Learning/</loc>
+    
+    <lastmod>2025-10-08</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/</loc>
+    
+    <lastmod>2025-10-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/</loc>
     
     <lastmod>2025-10-07</lastmod>
@@ -94,7 +112,7 @@
 
   <url>
     <loc>http://jiashun-ye.github.io/en-blog</loc>
-    <lastmod>2025-10-07</lastmod>
+    <lastmod>2025-10-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -102,7 +120,7 @@
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/tags/Label-Distribution-Learning/</loc>
-    <lastmod>2025-10-07</lastmod>
+    <lastmod>2025-10-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -111,7 +129,7 @@
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/categories/Thorough-Analysis/</loc>
-    <lastmod>2025-10-07</lastmod>
+    <lastmod>2025-10-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

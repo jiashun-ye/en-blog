@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/en-blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/en-blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/en-blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/en-blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/en-blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jiashun-ye.github.io","root":"/en-blog/","images":"/en-blog/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":500,"width_dual_column":250,"display":"hide","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":null},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/en-blog/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/en-blog/js/config.js"></script>
+
+    <meta name="description" content="A close reading of Geng et al.’s “Semi-Supervised Adaptive Label Distribution Learning for Facial Age Estimation” (2017). Building on a recap of LDL&#x2F;ALDL, this post unifies notation and lays out the">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning&#39;s Capabilities Again">
+<meta property="og:url" content="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/index.html">
+<meta property="og:site_name" content="JS.Ye’s Research Hub">
+<meta property="og:description" content="A close reading of Geng et al.’s “Semi-Supervised Adaptive Label Distribution Learning for Facial Age Estimation” (2017). Building on a recap of LDL&#x2F;ALDL, this post unifies notation and lays out the">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/SALDL%20FlowChart.png">
+<meta property="article:published_time" content="2025-10-07T13:39:38.000Z">
+<meta property="article:modified_time" content="2025-10-07T13:51:24.748Z">
+<meta property="article:author" content="Jiashun Ye">
+<meta property="article:tag" content="Label Distribution Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/SALDL%20FlowChart.png">
+
+
+<link rel="canonical" href="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/","path":"2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/","title":"Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning's Capabilities Again"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning's Capabilities Again | JS.Ye’s Research Hub</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/en-blog/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/en-blog/atom.xml" title="JS.Ye’s Research Hub" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/en-blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">JS.Ye’s Research Hub</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Paper Reviews, Course Notes, and Research Progress</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/en-blog/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-about"><a href="/en-blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li><li class="menu-item menu-item-tags"><a href="/en-blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/en-blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/en-blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-chinese"><a href="https://jiashun-ye.github.io/zh-blog/" rel="section"><i class="fa fa-globe fa-fw"></i>Chinese</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#semisupervised-adaptive-label-distribution-learning-saldl"><span class="nav-number">1.</span> <span class="nav-text">Semi‑Supervised
+Adaptive Label Distribution Learning (SALDL)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#experiments-and-results"><span class="nav-number">2.</span> <span class="nav-text">Experiments and Results</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jiashun Ye"
+      src="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">Jiashun Ye</p>
+  <div class="site-description" itemprop="description">Math & CS</div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/en-blog/images/%E7%89%A1%E4%B8%B9%E4%BA%AD%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="Jiashun Ye">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="JS.Ye’s Research Hub">
+      <meta itemprop="description" content="Math & CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning's Capabilities Again | JS.Ye’s Research Hub">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning's Capabilities Again
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-10-07 21:39:38 / Modified: 21:51:24" itemprop="dateCreated datePublished" datetime="2025-10-07T21:39:38+08:00">2025-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en-blog/categories/Thorough-Analysis/" itemprop="url" rel="index"><span itemprop="name">Thorough Analysis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>A close reading of Geng et al.’s “Semi-Supervised Adaptive Label
+Distribution Learning for Facial Age Estimation” (2017). Building on a
+recap of LDL/ALDL, this post unifies notation and lays out the minimal
+closed‑loop pipeline of SALDL (conditional distribution prediction →
+pseudo‑age KNN → age‑wise σ adaptation). It also makes explicit that
+pseudo‑age estimation for <strong>all samples</strong> is based on the
+current model’s predicted distributions, and it summarizes the MORPH
+experimental protocol and comparative results.</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+target="_blank" rel="noopener" href="https://ojs.aaai.org/index.php/AAAI/article/view/10822?utm_source=chatgpt.com">Semi-Supervised
+Adaptive Label Distribution Learning for Facial Age
+Estimation</a></em></p>
+<p><em>Prerequisite posts:</em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
+Analysis | From Single Labels to Label Distributions: A New Approach for
+Facial Age Estimation</a></em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/">Thorough
+Analysis | From Unified Variance to Age-Specific Variance: Adaptive
+Label Distributions and Joint Optimization</a></em></p>
+<p>In age estimation with scarce labels, Label Distribution Learning
+(LDL) mitigates variance and overfitting via soft weighting over
+neighboring ages. Adaptive LDL (ALDL) further learns an age‑wise
+variance σ, but unlabeled samples must be discarded, wasting
+information. To leverage LDL’s “neighbor effect” in a semi‑supervised
+manner—so that unlabeled data are constrained at the distribution level
+and can participate in training—SALDL couples unlabeled‑sample usage
+with age‑wise adaptive σ through alternating optimization, yielding more
+robust estimates under low‑label conditions.</p>
+<h2
+id="semisupervised-adaptive-label-distribution-learning-saldl">Semi‑Supervised
+Adaptive Label Distribution Learning (SALDL)</h2>
+<p>Let the labeled set be <span
+class="math inline">\(S_l=\{(x_i,\mu_i)\}\)</span>, the unlabeled set
+<span class="math inline">\(S_u=\{x_m\}\)</span>, and the age label
+space <span
+class="math inline">\(\mathcal{Y}=\{y_1,\dots,y_L\}\)</span>. In each
+iteration, SALDL links “conditional distribution prediction → pseudo‑age
+estimation → age‑wise <span class="math inline">\(\,\sigma\,\)</span>
+adaptation” into a closed loop. The optimization of <span
+class="math inline">\(\,\Theta\,\)</span> and <span
+class="math inline">\(\{\sigma_y\}\)</span> follows the KL‑minimization
+and alternating strategy introduced in the ALDL post; here we streamline
+the pipeline and detail pseudo‑age estimation for unlabeled samples.</p>
+<p><strong>(1) Conditional distribution prediction.</strong> With
+current parameters <span class="math inline">\(\Theta^{(k)}\)</span>,
+compute predicted label distributions for <strong>all samples</strong>
+(both <span class="math inline">\(S_l\)</span> and <span
+class="math inline">\(S_u\)</span>): <span class="math display">\[
+p^{(k)}(y\mid x)=\frac{\exp\!\big(\theta_y^{(k)\top}
+x\big)}{\sum_{y&#39;\in\mathcal{Y}}\exp\!\big(\theta_{y&#39;}^{(k)\top}
+x\big)}.
+\]</span> For samples in <span class="math inline">\(S_l\)</span>, these
+predictions are used to minimize KL against their target distributions
+to update <span class="math inline">\(\Theta\)</span>. For samples in
+<span class="math inline">\(S_u\)</span>, these predictions provide the
+distributional basis for pseudo‑age estimation (next step).</p>
+<p><strong>(2) Pseudo‑age estimation (unlabeled samples).</strong> For
+each <span class="math inline">\(x_m\in S_u\)</span>, select <span
+class="math inline">\(K\)</span> nearest neighbors in <span
+class="math inline">\(S_l\)</span> using a <strong>feature +
+predicted‑distribution</strong> composite distance: <span
+class="math display">\[
+\lambda(x_m,x_n)=\lVert
+x_m-x_n\rVert_2^2\;+\;\alpha\,\mathrm{KL}\!\Big(p^{(k)}(\cdot\mid
+x_m)\,\Big\|\,p^{(k)}(\cdot\mid x_n)\Big),\quad x_n\in S_l.
+\]</span> Here <span class="math inline">\(x_m\in S_u\)</span>, <span
+class="math inline">\(x_n\in S_l\)</span>, <span
+class="math inline">\(p^{(k)}(y\mid x)\)</span> is the iteration‑<span
+class="math inline">\(k\)</span> predicted distribution, and <span
+class="math inline">\(\alpha&gt;0\)</span> balances feature distance and
+distribution discrepancy.</p>
+<p>Let the neighbor set be <span
+class="math inline">\(\mathcal{N}(x_m)\)</span> with true ages <span
+class="math inline">\(\{\mu_n: x_n\in\mathcal{N}(x_m)\}\)</span>. Define
+the <strong>pseudo‑age</strong> of <span
+class="math inline">\(x_m\)</span> as <span class="math display">\[
+\tilde{\mu}_m^{(k)}=\frac{1}{K}\sum_{x_n\in\mathcal{N}(x_m)}\mu_n,
+\]</span> and construct its target label distribution (a discrete
+Gaussian using age‑wise variance <span
+class="math inline">\(\sigma_y^{(k)}\)</span>): <span
+class="math display">\[
+d_m^{(k)}(y)\propto
+\exp\!\left(-\frac{(y-\tilde{\mu}_m^{(k)})^2}{2(\sigma_y^{(k)})^2}\right),\quad
+y\in\mathcal{Y}.
+\]</span> All the distributional information used in pseudo‑age
+estimation comes solely from the current model’s predicted label
+distributions <span class="math inline">\(p^{(k)}(\cdot\mid x)\)</span>;
+unlabeled samples require neither prior ages nor initialized
+targets.</p>
+<p><strong>(3) Age‑wise <span class="math inline">\(\,\sigma\,\)</span>
+adaptation and target reconstruction.</strong> Compute the point
+estimate <span
+class="math inline">\(\hat{\mu}(x)=\arg\max_{y\in\mathcal{Y}}
+p^{(k)}(y\mid x)\)</span> and the reference age <span
+class="math inline">\(\mu_{\text{ref}}(x)\)</span> (for labeled samples
+use <span class="math inline">\(\mu_i\)</span>; for unlabeled samples
+use <span class="math inline">\(\tilde{\mu}_m^{(k)}\)</span>). Define
+the error <span class="math inline">\(e(x)=\lvert
+\hat{\mu}(x)-\mu_{\text{ref}}(x)\rvert\)</span> and select samples with
+<span class="math inline">\(e(x)\)</span> below the current MAE as the
+<strong>trusted set</strong>, then group them by age <span
+class="math inline">\(y\)</span>. Next, for each <span
+class="math inline">\(y\)</span>, solve a one‑dimensional constrained
+problem to obtain the updated age‑wise variance <span
+class="math inline">\(\sigma_y^{(k+1)}\)</span> that minimizes the total
+KL between the Gaussian target and the trusted samples’ predicted
+distributions. Finally, using <span
+class="math inline">\(\{\sigma_y^{(k+1)}\}\)</span>, reconstruct target
+distributions for all samples—combining with true ages <span
+class="math inline">\(\mu_i\)</span> (for <span
+class="math inline">\(S_l\)</span>) or pseudo‑ages <span
+class="math inline">\(\tilde{\mu}_m^{(k)}\)</span> (for <span
+class="math inline">\(S_u\)</span>)—and proceed to the next round of KL
+minimization for <span class="math inline">\(\Theta\)</span>.</p>
+<p><strong>Notation.</strong></p>
+<ul>
+<li><span class="math inline">\(x\in\mathbb{R}^d\)</span>: numeric
+feature vector of an image; <span class="math inline">\(\mu\)</span>:
+true age; <span class="math inline">\(\tilde{\mu}\)</span>: pseudo‑age;
+<span class="math inline">\(\hat{\mu}\)</span>: point estimate from the
+argmax of the predicted distribution.<br />
+</li>
+<li><span class="math inline">\(\mathcal{Y}\)</span>: discrete age set;
+<span class="math inline">\(d(y\mid\cdot,\sigma_y)\)</span>: discrete
+Gaussian label distribution with mean at age and age‑wise variance <span
+class="math inline">\(\sigma_y\)</span>; <span
+class="math inline">\(Z\)</span>: normalization constant.<br />
+</li>
+<li><span class="math inline">\(p^{(k)}(y\mid x)\)</span>:
+iteration‑<span class="math inline">\(k\)</span> predicted distribution
+for sample <span class="math inline">\(x\)</span>; <span
+class="math inline">\(\Theta^{(k)}\)</span>: model parameters; <span
+class="math inline">\(\theta_y^{(k)}\)</span>: class‑conditional weight
+vector.<br />
+</li>
+<li><span class="math inline">\(\lambda(\cdot,\cdot)\)</span>: composite
+distance; <span
+class="math inline">\(\mathrm{KL}(\cdot\|\cdot)\)</span>:
+Kullback–Leibler divergence; <span class="math inline">\(K\)</span>:
+number of neighbors; <span class="math inline">\(\alpha&gt;0\)</span>:
+trade‑off hyperparameter.<br />
+</li>
+<li><span class="math inline">\(\sigma_y\)</span>: variance for age
+<span class="math inline">\(y\)</span> (age‑wise adaptive); MAE: current
+round’s mean absolute error threshold for selecting trusted
+samples.</li>
+</ul>
+<p>The algorithmic workflow is illustrated below.</p>
+<p><img src="SALDL%20FlowChart.png" /></p>
+<h2 id="experiments-and-results">Experiments and Results</h2>
+<p>The setup follows common age‑estimation practice: extract BIF
+features on MORPH and reduce dimensionality via MFA; fix a held‑out test
+set; on the training side, simulate “label scarcity” by controlling the
+labeled proportion while keeping the total number of samples roughly
+constant. Semi‑supervised methods (SLDL, SALDL) use additional unlabeled
+samples at every labeled scale. Baselines include KPLS, OHRank, LDL,
+ALDL, and label propagation (LP). The evaluation metric is MAE.
+Hyperparameters are chosen by cross‑validation; a typical choice is
+initial variance <span class="math inline">\(\sigma_0=3\)</span>,
+neighbors <span class="math inline">\(K=10\)</span>, composite‑distance
+weight <span class="math inline">\(\alpha=10^{-3}\)</span>, and the
+maximum number of iterations decreases moderately as the labeled set
+grows. At inference, the point estimate is <span
+class="math inline">\(y^*=\arg\max_y p(y\mid x;\Theta^*)\)</span>.</p>
+<p>Results show that under low labeled counts (e.g., <span
+class="math inline">\(\leq 10^3\)</span>), SALDL consistently
+outperforms all baselines in MAE. The gains come from two sources: (i)
+pseudo‑age estimation converts unlabeled data into effective supervision
+by combining feature distance with distributional proximity; (ii)
+age‑wise variance adaptation minimizes the KL between target and
+predicted distributions on the trusted set, aligning label distributions
+to the varying “rates of change” across ages. Comparatively, SLDL
+clearly outperforms ALDL (which only adapts), demonstrating the benefit
+of semi‑supervision; SALDL further improves upon SLDL, indicating that
+alternating semi‑supervision and adaptation has additive effects. When
+labels are plentiful, method gaps shrink; in the limit of “fully
+labeled,” SALDL reduces to ALDL. Even when unlabeled and labeled sources
+differ in gender/ethnicity composition, increasing unlabeled volume
+continues to reduce error, reflecting robustness of pseudo‑age
+estimation and adaptation to distribution shift.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/en-blog/tags/Label-Distribution-Learning/" rel="tag"># Label Distribution Learning</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/" rel="prev" title="Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation">
+                  <i class="fa fa-angle-left"></i> Thorough Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of Distribution and Expectation
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/en-blog/2025/10/08/Thorough-Analysis-From-Static-to-Temporal-Individualized-Aging-Trajectories-and-Label-Distribution-Learning/" rel="next" title="Thorough Analysis | From Static to Temporal: Individualized Aging Trajectories and Label Distribution Learning">
+                  Thorough Analysis | From Static to Temporal: Individualized Aging Trajectories and Label Distribution Learning <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Jiashun Ye</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/comments.js"></script><script src="/en-blog/js/utils.js"></script><script src="/en-blog/js/motion.js"></script><script src="/en-blog/js/sidebar.js"></script><script src="/en-blog/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/en-blog/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.min.js","integrity":"sha256-G8ouPAnw4zzMbnAenHnVz6h9XpKbNdOkrqTh7AadyHs="}}</script>
+  <script src="/en-blog/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/en-blog/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
