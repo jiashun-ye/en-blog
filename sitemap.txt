@@ -1,3 +1,4 @@
+http://jiashun-ye.github.io/en-blog/2025/10/08/Thorough-Analysis-Sparse-Conditional-Energy-Label-Distribution-Learning-Improvements-in-Probabilistic-Modeling/
 http://jiashun-ye.github.io/en-blog/2025/10/08/Thorough-Analysis-From-Static-to-Temporal-Individualized-Aging-Trajectories-and-Label-Distribution-Learning/
 http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/
 http://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/

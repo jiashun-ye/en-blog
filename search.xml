@@ -597,6 +597,96 @@ training/inference efficiency or face limited data, prefer IIS-LLD.</p>
       </tags>
   </entry>
   <entry>
+    <title>Thorough Analysis | From Static to Temporal: Individualized Aging Trajectories and Label Distribution Learning</title>
+    <url>/en-blog/2025/10/08/Thorough-Analysis-From-Static-to-Temporal-Individualized-Aging-Trajectories-and-Label-Distribution-Learning/</url>
+    <content><![CDATA[<p>This post offers a close reading of Geng et al.’s “Recurrent Age
+Estimation” (2019). It lays out the algorithmic pipeline and overall
+architecture of Recurrent Age Estimation (RAE), summarizes the
+experimental setups and key results on public datasets, and provides a
+brief analysis of model performance and computational cost.</p>
+<span id="more"></span>
+<p><em>Paper link: <a
+href="https://www.sciencedirect.com/science/article/abs/pii/S0167865519301448?via%3Dihub">Recurrent
+age estimation</a></em></p>
+<p><em>Prerequisite posts:</em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
+Analysis | From Single Labels to Label Distributions: A New Approach for
+Facial Age Estimation</a></em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-Distributional-Supervision-and-Practical-Construction/">Thorough
+Analysis | Deep Label Distribution Learning: Distributional Supervision
+and Practical Construction</a></em></p>
+<p><em><a
+href="https://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/">Thorough
+Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of
+Distribution and Expectation</a></em></p>
+<p>Most age-estimation methods still operate at the single-frame level;
+even with LDL, they ignore temporal changes within a person. RAE forms a
+sequence from multiple photos of the same identity: a CNN extracts
+appearance features, and an LSTM learns an individualized aging
+trajectory. Meanwhile, the label distribution is truncated to the
+vicinity of the true age (a ± 5 years). This combination of “temporal
+modeling + localized label distribution” significantly lowers MAE on
+standard datasets, with larger gains as sequence coverage improves.</p>
+<h1 id="recurrent-age-estimation-rae">Recurrent Age Estimation
+(RAE)</h1>
+<p>RAE treats “multiple faces of the same person” as a time series. A
+convolutional network learns stable appearance features, and a recurrent
+network captures how an individual’s face evolves over time. Concretely,
+Inception-v4 is first trained as a classifier under label distribution
+supervision; after training, the softmax layer is removed, and the
+feature vector “right before the last dropout” (1536-D) is used as the
+frame-level representation. Frames from the same identity are
+concatenated—roughly in chronological order—into a sequence and fed into
+an LSTM.</p>
+<p>To make supervision more realistic, the label distribution is no
+longer a full-support Gaussian: for a true age a, the distribution is
+truncated to the neighborhood [a − 5, a + 5] and zeroed outside (σ ≈ 3),
+preserving uncertainty among nearby ages while suppressing the noisy
+tails far from the ground truth. The LSTM outputs an age distribution at
+each time step; training minimizes a sequence-level cross-entropy
+between distributions, and inference takes the expectation of the
+predicted distribution to obtain a scalar age.</p>
+<p>RAE supports variable-length sequences: with only a single photo it
+degenerates to a one-step sequence and still produces a result. If
+reliable timestamps are unavailable, one may use EXIF/file time or sort
+a person’s images by pseudo-age from a single-frame coarse predictor
+before running the LSTM forward.</p>
+<p>Preprocessing follows standard practice: face detection → five-point
+alignment → resize to 224×224; train/test splits are made by identity to
+avoid leakage. At inference, simple TTA with horizontal flipping can be
+used for robustness. The overall pipeline is illustrated below.</p>
+<p><img src="RAE-Flowchart.png" /></p>
+<h1 id="experiments-and-results">Experiments and Results</h1>
+<p>On the MORPH and FG-NET datasets, RAE achieves a substantially lower
+MAE than DLDL, which relies only on single-frame appearance: around 1.32
+on MORPH (vs. ~2.43 for DLDL) and around 2.19 on FG-NET (vs. ~3.76). The
+Cumulative Score (CS) curves likewise show consistent gains across
+thresholds. The improvement mainly stems from two factors: (1) the LSTM
+captures individualized temporal information—whether someone ages
+faster/slower and which appearance cues change stably over time; (2) the
+truncated-Gaussian label distribution focuses supervision within a
+plausible neighborhood, mitigating instability from small sample sizes
+and noisy labels.</p>
+<p>As sequences get longer, predictions generally become more stable and
+accurate; the gains diminish if frames with extreme pose or poor quality
+are added. In terms of computation, RAE is slightly slower than a pure
+CNN during both training and inference, but with GPU-side frame-feature
+extraction, throughput is practical for real-world use. Overall, when
+data meets the basic condition of “multiple images per identity,” RAE
+unifies “distributional uncertainty” and “temporal context” in a single
+framework, delivering clear, reproducible accuracy improvements without
+sacrificing deployability.</p>
+]]></content>
+      <categories>
+        <category>Thorough Analysis</category>
+      </categories>
+      <tags>
+        <tag>Label Distribution Learning</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Thorough Analysis | From Single Labels to Label Distributions: A New Approach for Facial Age Estimation</title>
     <url>/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/</url>
     <content><![CDATA[<p>This article offers a thorough analysis of Xin Geng et al.’s paper
@@ -1119,87 +1209,191 @@ sources are disputed.</p>
       </tags>
   </entry>
   <entry>
-    <title>Thorough Analysis | From Static to Temporal: Individualized Aging Trajectories and Label Distribution Learning</title>
-    <url>/en-blog/2025/10/08/Thorough-Analysis-From-Static-to-Temporal-Individualized-Aging-Trajectories-and-Label-Distribution-Learning/</url>
-    <content><![CDATA[<p>This post offers a close reading of Geng et al.’s “Recurrent Age
-Estimation” (2019). It lays out the algorithmic pipeline and overall
-architecture of Recurrent Age Estimation (RAE), summarizes the
-experimental setups and key results on public datasets, and provides a
-brief analysis of model performance and computational cost.</p>
+    <title>Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning&#39;s Capabilities Again</title>
+    <url>/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/</url>
+    <content><![CDATA[<p>A close reading of Geng et al.’s “Semi-Supervised Adaptive Label
+Distribution Learning for Facial Age Estimation” (2017). Building on a
+recap of LDL/ALDL, this post unifies notation and lays out the minimal
+closed‑loop pipeline of SALDL (conditional distribution prediction →
+pseudo‑age KNN → age‑wise σ adaptation). It also makes explicit that
+pseudo‑age estimation for <strong>all samples</strong> is based on the
+current model’s predicted distributions, and it summarizes the MORPH
+experimental protocol and comparative results.</p>
 <span id="more"></span>
 <p><em>Paper link: <a
-href="https://www.sciencedirect.com/science/article/abs/pii/S0167865519301448?via%3Dihub">Recurrent
-age estimation</a></em></p>
+href="https://ojs.aaai.org/index.php/AAAI/article/view/10822?utm_source=chatgpt.com">Semi-Supervised
+Adaptive Label Distribution Learning for Facial Age
+Estimation</a></em></p>
 <p><em>Prerequisite posts:</em></p>
 <p><em><a
 href="https://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
 Analysis | From Single Labels to Label Distributions: A New Approach for
 Facial Age Estimation</a></em></p>
 <p><em><a
-href="https://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-Distributional-Supervision-and-Practical-Construction/">Thorough
-Analysis | Deep Label Distribution Learning: Distributional Supervision
-and Practical Construction</a></em></p>
-<p><em><a
-href="https://jiashun-ye.github.io/en-blog/2025/10/07/Thorough-Analysis-Deep-Label-Distribution-Learning-2-0-Joint-Optimization-of-Distribution-and-Expectation/">Thorough
-Analysis | Deep Label Distribution Learning 2.0: Joint Optimization of
-Distribution and Expectation</a></em></p>
-<p>Most age-estimation methods still operate at the single-frame level;
-even with LDL, they ignore temporal changes within a person. RAE forms a
-sequence from multiple photos of the same identity: a CNN extracts
-appearance features, and an LSTM learns an individualized aging
-trajectory. Meanwhile, the label distribution is truncated to the
-vicinity of the true age (a ± 5 years). This combination of “temporal
-modeling + localized label distribution” significantly lowers MAE on
-standard datasets, with larger gains as sequence coverage improves.</p>
-<h1 id="recurrent-age-estimation-rae">Recurrent Age Estimation
-(RAE)</h1>
-<p>RAE treats “multiple faces of the same person” as a time series. A
-convolutional network learns stable appearance features, and a recurrent
-network captures how an individual’s face evolves over time. Concretely,
-Inception-v4 is first trained as a classifier under label distribution
-supervision; after training, the softmax layer is removed, and the
-feature vector “right before the last dropout” (1536-D) is used as the
-frame-level representation. Frames from the same identity are
-concatenated—roughly in chronological order—into a sequence and fed into
-an LSTM.</p>
-<p>To make supervision more realistic, the label distribution is no
-longer a full-support Gaussian: for a true age a, the distribution is
-truncated to the neighborhood [a − 5, a + 5] and zeroed outside (σ ≈ 3),
-preserving uncertainty among nearby ages while suppressing the noisy
-tails far from the ground truth. The LSTM outputs an age distribution at
-each time step; training minimizes a sequence-level cross-entropy
-between distributions, and inference takes the expectation of the
-predicted distribution to obtain a scalar age.</p>
-<p>RAE supports variable-length sequences: with only a single photo it
-degenerates to a one-step sequence and still produces a result. If
-reliable timestamps are unavailable, one may use EXIF/file time or sort
-a person’s images by pseudo-age from a single-frame coarse predictor
-before running the LSTM forward.</p>
-<p>Preprocessing follows standard practice: face detection → five-point
-alignment → resize to 224×224; train/test splits are made by identity to
-avoid leakage. At inference, simple TTA with horizontal flipping can be
-used for robustness. The overall pipeline is illustrated below.</p>
-<p><img src="RAE-Flowchart.png" /></p>
-<h1 id="experiments-and-results">Experiments and Results</h1>
-<p>On the MORPH and FG-NET datasets, RAE achieves a substantially lower
-MAE than DLDL, which relies only on single-frame appearance: around 1.32
-on MORPH (vs. ~2.43 for DLDL) and around 2.19 on FG-NET (vs. ~3.76). The
-Cumulative Score (CS) curves likewise show consistent gains across
-thresholds. The improvement mainly stems from two factors: (1) the LSTM
-captures individualized temporal information—whether someone ages
-faster/slower and which appearance cues change stably over time; (2) the
-truncated-Gaussian label distribution focuses supervision within a
-plausible neighborhood, mitigating instability from small sample sizes
-and noisy labels.</p>
-<p>As sequences get longer, predictions generally become more stable and
-accurate; the gains diminish if frames with extreme pose or poor quality
-are added. In terms of computation, RAE is slightly slower than a pure
-CNN during both training and inference, but with GPU-side frame-feature
-extraction, throughput is practical for real-world use. Overall, when
-data meets the basic condition of “multiple images per identity,” RAE
-unifies “distributional uncertainty” and “temporal context” in a single
-framework, delivering clear, reproducible accuracy improvements without
-sacrificing deployability.</p>
+href="https://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/">Thorough
+Analysis | From Unified Variance to Age-Specific Variance: Adaptive
+Label Distributions and Joint Optimization</a></em></p>
+<p>In age estimation with scarce labels, Label Distribution Learning
+(LDL) mitigates variance and overfitting via soft weighting over
+neighboring ages. Adaptive LDL (ALDL) further learns an age‑wise
+variance σ, but unlabeled samples must be discarded, wasting
+information. To leverage LDL’s “neighbor effect” in a semi‑supervised
+manner—so that unlabeled data are constrained at the distribution level
+and can participate in training—SALDL couples unlabeled‑sample usage
+with age‑wise adaptive σ through alternating optimization, yielding more
+robust estimates under low‑label conditions.</p>
+<h2
+id="semisupervised-adaptive-label-distribution-learning-saldl">Semi‑Supervised
+Adaptive Label Distribution Learning (SALDL)</h2>
+<p>Let the labeled set be <span
+class="math inline">\(S_l=\{(x_i,\mu_i)\}\)</span>, the unlabeled set
+<span class="math inline">\(S_u=\{x_m\}\)</span>, and the age label
+space <span
+class="math inline">\(\mathcal{Y}=\{y_1,\dots,y_L\}\)</span>. In each
+iteration, SALDL links “conditional distribution prediction → pseudo‑age
+estimation → age‑wise <span class="math inline">\(\,\sigma\,\)</span>
+adaptation” into a closed loop. The optimization of <span
+class="math inline">\(\,\Theta\,\)</span> and <span
+class="math inline">\(\{\sigma_y\}\)</span> follows the KL‑minimization
+and alternating strategy introduced in the ALDL post; here we streamline
+the pipeline and detail pseudo‑age estimation for unlabeled samples.</p>
+<p><strong>(1) Conditional distribution prediction.</strong> With
+current parameters <span class="math inline">\(\Theta^{(k)}\)</span>,
+compute predicted label distributions for <strong>all samples</strong>
+(both <span class="math inline">\(S_l\)</span> and <span
+class="math inline">\(S_u\)</span>): <span class="math display">\[
+p^{(k)}(y\mid x)=\frac{\exp\!\big(\theta_y^{(k)\top}
+x\big)}{\sum_{y&#39;\in\mathcal{Y}}\exp\!\big(\theta_{y&#39;}^{(k)\top}
+x\big)}.
+\]</span> For samples in <span class="math inline">\(S_l\)</span>, these
+predictions are used to minimize KL against their target distributions
+to update <span class="math inline">\(\Theta\)</span>. For samples in
+<span class="math inline">\(S_u\)</span>, these predictions provide the
+distributional basis for pseudo‑age estimation (next step).</p>
+<p><strong>(2) Pseudo‑age estimation (unlabeled samples).</strong> For
+each <span class="math inline">\(x_m\in S_u\)</span>, select <span
+class="math inline">\(K\)</span> nearest neighbors in <span
+class="math inline">\(S_l\)</span> using a <strong>feature +
+predicted‑distribution</strong> composite distance: <span
+class="math display">\[
+\lambda(x_m,x_n)=\lVert
+x_m-x_n\rVert_2^2\;+\;\alpha\,\mathrm{KL}\!\Big(p^{(k)}(\cdot\mid
+x_m)\,\Big\|\,p^{(k)}(\cdot\mid x_n)\Big),\quad x_n\in S_l.
+\]</span> Here <span class="math inline">\(x_m\in S_u\)</span>, <span
+class="math inline">\(x_n\in S_l\)</span>, <span
+class="math inline">\(p^{(k)}(y\mid x)\)</span> is the iteration‑<span
+class="math inline">\(k\)</span> predicted distribution, and <span
+class="math inline">\(\alpha&gt;0\)</span> balances feature distance and
+distribution discrepancy.</p>
+<p>Let the neighbor set be <span
+class="math inline">\(\mathcal{N}(x_m)\)</span> with true ages <span
+class="math inline">\(\{\mu_n: x_n\in\mathcal{N}(x_m)\}\)</span>. Define
+the <strong>pseudo‑age</strong> of <span
+class="math inline">\(x_m\)</span> as <span class="math display">\[
+\tilde{\mu}_m^{(k)}=\frac{1}{K}\sum_{x_n\in\mathcal{N}(x_m)}\mu_n,
+\]</span> and construct its target label distribution (a discrete
+Gaussian using age‑wise variance <span
+class="math inline">\(\sigma_y^{(k)}\)</span>): <span
+class="math display">\[
+d_m^{(k)}(y)\propto
+\exp\!\left(-\frac{(y-\tilde{\mu}_m^{(k)})^2}{2(\sigma_y^{(k)})^2}\right),\quad
+y\in\mathcal{Y}.
+\]</span> All the distributional information used in pseudo‑age
+estimation comes solely from the current model’s predicted label
+distributions <span class="math inline">\(p^{(k)}(\cdot\mid x)\)</span>;
+unlabeled samples require neither prior ages nor initialized
+targets.</p>
+<p><strong>(3) Age‑wise <span class="math inline">\(\,\sigma\,\)</span>
+adaptation and target reconstruction.</strong> Compute the point
+estimate <span
+class="math inline">\(\hat{\mu}(x)=\arg\max_{y\in\mathcal{Y}}
+p^{(k)}(y\mid x)\)</span> and the reference age <span
+class="math inline">\(\mu_{\text{ref}}(x)\)</span> (for labeled samples
+use <span class="math inline">\(\mu_i\)</span>; for unlabeled samples
+use <span class="math inline">\(\tilde{\mu}_m^{(k)}\)</span>). Define
+the error <span class="math inline">\(e(x)=\lvert
+\hat{\mu}(x)-\mu_{\text{ref}}(x)\rvert\)</span> and select samples with
+<span class="math inline">\(e(x)\)</span> below the current MAE as the
+<strong>trusted set</strong>, then group them by age <span
+class="math inline">\(y\)</span>. Next, for each <span
+class="math inline">\(y\)</span>, solve a one‑dimensional constrained
+problem to obtain the updated age‑wise variance <span
+class="math inline">\(\sigma_y^{(k+1)}\)</span> that minimizes the total
+KL between the Gaussian target and the trusted samples’ predicted
+distributions. Finally, using <span
+class="math inline">\(\{\sigma_y^{(k+1)}\}\)</span>, reconstruct target
+distributions for all samples—combining with true ages <span
+class="math inline">\(\mu_i\)</span> (for <span
+class="math inline">\(S_l\)</span>) or pseudo‑ages <span
+class="math inline">\(\tilde{\mu}_m^{(k)}\)</span> (for <span
+class="math inline">\(S_u\)</span>)—and proceed to the next round of KL
+minimization for <span class="math inline">\(\Theta\)</span>.</p>
+<p><strong>Notation.</strong></p>
+<ul>
+<li><span class="math inline">\(x\in\mathbb{R}^d\)</span>: numeric
+feature vector of an image; <span class="math inline">\(\mu\)</span>:
+true age; <span class="math inline">\(\tilde{\mu}\)</span>: pseudo‑age;
+<span class="math inline">\(\hat{\mu}\)</span>: point estimate from the
+argmax of the predicted distribution.<br />
+</li>
+<li><span class="math inline">\(\mathcal{Y}\)</span>: discrete age set;
+<span class="math inline">\(d(y\mid\cdot,\sigma_y)\)</span>: discrete
+Gaussian label distribution with mean at age and age‑wise variance <span
+class="math inline">\(\sigma_y\)</span>; <span
+class="math inline">\(Z\)</span>: normalization constant.<br />
+</li>
+<li><span class="math inline">\(p^{(k)}(y\mid x)\)</span>:
+iteration‑<span class="math inline">\(k\)</span> predicted distribution
+for sample <span class="math inline">\(x\)</span>; <span
+class="math inline">\(\Theta^{(k)}\)</span>: model parameters; <span
+class="math inline">\(\theta_y^{(k)}\)</span>: class‑conditional weight
+vector.<br />
+</li>
+<li><span class="math inline">\(\lambda(\cdot,\cdot)\)</span>: composite
+distance; <span
+class="math inline">\(\mathrm{KL}(\cdot\|\cdot)\)</span>:
+Kullback–Leibler divergence; <span class="math inline">\(K\)</span>:
+number of neighbors; <span class="math inline">\(\alpha&gt;0\)</span>:
+trade‑off hyperparameter.<br />
+</li>
+<li><span class="math inline">\(\sigma_y\)</span>: variance for age
+<span class="math inline">\(y\)</span> (age‑wise adaptive); MAE: current
+round’s mean absolute error threshold for selecting trusted
+samples.</li>
+</ul>
+<p>The algorithmic workflow is illustrated below.</p>
+<p><img src="SALDL%20FlowChart.png" /></p>
+<h2 id="experiments-and-results">Experiments and Results</h2>
+<p>The setup follows common age‑estimation practice: extract BIF
+features on MORPH and reduce dimensionality via MFA; fix a held‑out test
+set; on the training side, simulate “label scarcity” by controlling the
+labeled proportion while keeping the total number of samples roughly
+constant. Semi‑supervised methods (SLDL, SALDL) use additional unlabeled
+samples at every labeled scale. Baselines include KPLS, OHRank, LDL,
+ALDL, and label propagation (LP). The evaluation metric is MAE.
+Hyperparameters are chosen by cross‑validation; a typical choice is
+initial variance <span class="math inline">\(\sigma_0=3\)</span>,
+neighbors <span class="math inline">\(K=10\)</span>, composite‑distance
+weight <span class="math inline">\(\alpha=10^{-3}\)</span>, and the
+maximum number of iterations decreases moderately as the labeled set
+grows. At inference, the point estimate is <span
+class="math inline">\(y^*=\arg\max_y p(y\mid x;\Theta^*)\)</span>.</p>
+<p>Results show that under low labeled counts (e.g., <span
+class="math inline">\(\leq 10^3\)</span>), SALDL consistently
+outperforms all baselines in MAE. The gains come from two sources: (i)
+pseudo‑age estimation converts unlabeled data into effective supervision
+by combining feature distance with distributional proximity; (ii)
+age‑wise variance adaptation minimizes the KL between target and
+predicted distributions on the trusted set, aligning label distributions
+to the varying “rates of change” across ages. Comparatively, SLDL
+clearly outperforms ALDL (which only adapts), demonstrating the benefit
+of semi‑supervision; SALDL further improves upon SLDL, indicating that
+alternating semi‑supervision and adaptation has additive effects. When
+labels are plentiful, method gaps shrink; in the limit of “fully
+labeled,” SALDL reduces to ALDL. Even when unlabeled and labeled sources
+differ in gender/ethnicity composition, increasing unlabeled volume
+continues to reduce error, reflecting robustness of pseudo‑age
+estimation and adaptation to distribution shift.</p>
 ]]></content>
       <categories>
         <category>Thorough Analysis</category>
@@ -1500,191 +1694,332 @@ the performance gains.</p>
       </tags>
   </entry>
   <entry>
-    <title>Thorough Analysis | Pseudo-Age-Based Semi-Supervision: Breaking the Boundaries of Label Distribution Learning&#39;s Capabilities Again</title>
-    <url>/en-blog/2025/10/07/Thorough-Analysis-Pseudo-Age-Based-Semi-Supervision-Breaking-the-Boundaries-of-Label-Distribution-Learning-s-Capabilities-Again/</url>
-    <content><![CDATA[<p>A close reading of Geng et al.’s “Semi-Supervised Adaptive Label
-Distribution Learning for Facial Age Estimation” (2017). Building on a
-recap of LDL/ALDL, this post unifies notation and lays out the minimal
-closed‑loop pipeline of SALDL (conditional distribution prediction →
-pseudo‑age KNN → age‑wise σ adaptation). It also makes explicit that
-pseudo‑age estimation for <strong>all samples</strong> is based on the
-current model’s predicted distributions, and it summarizes the MORPH
-experimental protocol and comparative results.</p>
+    <title>Thorough Analysis | Sparse Conditional Energy Label Distribution Learning: Improvements in Probabilistic Modeling</title>
+    <url>/en-blog/2025/10/08/Thorough-Analysis-Sparse-Conditional-Energy-Label-Distribution-Learning-Improvements-in-Probabilistic-Modeling/</url>
+    <content><![CDATA[<p>A close reading of Geng et al., “Sparsity Conditional Energy Label
+Distribution Learning for Age Estimation” (2016): starting from a
+conditional energy model, we derive a closed-form transformation that
+turns the exponential sum over binary latent variables into a “gated
+product”; we build a joint objective of KL fitting + sparse gating,
+derive explicit gradients and SGD updates for <span
+class="math inline">\(b_j\)</span>, <span
+class="math inline">\(u_{jr}\)</span>, and <span
+class="math inline">\(\omega_r\)</span>; and we summarize and analyze
+the experiments.</p>
 <span id="more"></span>
 <p><em>Paper link: <a
-href="https://ojs.aaai.org/index.php/AAAI/article/view/10822?utm_source=chatgpt.com">Semi-Supervised
-Adaptive Label Distribution Learning for Facial Age
+href="https://www.ijcai.org/Proceedings/16/Papers/322.pdf">Sparsity
+Conditional Energy Label Distribution Learning for Age
 Estimation</a></em></p>
-<p><em>Prerequisite posts:</em></p>
+<p><em>Prerequisite article link:</em></p>
 <p><em><a
 href="https://jiashun-ye.github.io/en-blog/2025/03/16/Thorough-Analysis-From%20Single-Label%20to%20Label%20Distribution%20A%20New%20Approach%20to%20Facial%20Age%20Estimation/">Thorough
 Analysis | From Single Labels to Label Distributions: A New Approach for
 Facial Age Estimation</a></em></p>
-<p><em><a
-href="https://jiashun-ye.github.io/en-blog/2025/09/17/Thorough-Analysis-From-Unified-Variance-to-Age-Specific-Variance-Adaptive-Label-Distributions-and-Joint-Optimization/">Thorough
-Analysis | From Unified Variance to Age-Specific Variance: Adaptive
-Label Distributions and Joint Optimization</a></em></p>
-<p>In age estimation with scarce labels, Label Distribution Learning
-(LDL) mitigates variance and overfitting via soft weighting over
-neighboring ages. Adaptive LDL (ALDL) further learns an age‑wise
-variance σ, but unlabeled samples must be discarded, wasting
-information. To leverage LDL’s “neighbor effect” in a semi‑supervised
-manner—so that unlabeled data are constrained at the distribution level
-and can participate in training—SALDL couples unlabeled‑sample usage
-with age‑wise adaptive σ through alternating optimization, yielding more
-robust estimates under low‑label conditions.</p>
-<h2
-id="semisupervised-adaptive-label-distribution-learning-saldl">Semi‑Supervised
-Adaptive Label Distribution Learning (SALDL)</h2>
-<p>Let the labeled set be <span
-class="math inline">\(S_l=\{(x_i,\mu_i)\}\)</span>, the unlabeled set
-<span class="math inline">\(S_u=\{x_m\}\)</span>, and the age label
-space <span
-class="math inline">\(\mathcal{Y}=\{y_1,\dots,y_L\}\)</span>. In each
-iteration, SALDL links “conditional distribution prediction → pseudo‑age
-estimation → age‑wise <span class="math inline">\(\,\sigma\,\)</span>
-adaptation” into a closed loop. The optimization of <span
-class="math inline">\(\,\Theta\,\)</span> and <span
-class="math inline">\(\{\sigma_y\}\)</span> follows the KL‑minimization
-and alternating strategy introduced in the ALDL post; here we streamline
-the pipeline and detail pseudo‑age estimation for unlabeled samples.</p>
-<p><strong>(1) Conditional distribution prediction.</strong> With
-current parameters <span class="math inline">\(\Theta^{(k)}\)</span>,
-compute predicted label distributions for <strong>all samples</strong>
-(both <span class="math inline">\(S_l\)</span> and <span
-class="math inline">\(S_u\)</span>): <span class="math display">\[
-p^{(k)}(y\mid x)=\frac{\exp\!\big(\theta_y^{(k)\top}
-x\big)}{\sum_{y&#39;\in\mathcal{Y}}\exp\!\big(\theta_{y&#39;}^{(k)\top}
-x\big)}.
-\]</span> For samples in <span class="math inline">\(S_l\)</span>, these
-predictions are used to minimize KL against their target distributions
-to update <span class="math inline">\(\Theta\)</span>. For samples in
-<span class="math inline">\(S_u\)</span>, these predictions provide the
-distributional basis for pseudo‑age estimation (next step).</p>
-<p><strong>(2) Pseudo‑age estimation (unlabeled samples).</strong> For
-each <span class="math inline">\(x_m\in S_u\)</span>, select <span
-class="math inline">\(K\)</span> nearest neighbors in <span
-class="math inline">\(S_l\)</span> using a <strong>feature +
-predicted‑distribution</strong> composite distance: <span
-class="math display">\[
-\lambda(x_m,x_n)=\lVert
-x_m-x_n\rVert_2^2\;+\;\alpha\,\mathrm{KL}\!\Big(p^{(k)}(\cdot\mid
-x_m)\,\Big\|\,p^{(k)}(\cdot\mid x_n)\Big),\quad x_n\in S_l.
-\]</span> Here <span class="math inline">\(x_m\in S_u\)</span>, <span
-class="math inline">\(x_n\in S_l\)</span>, <span
-class="math inline">\(p^{(k)}(y\mid x)\)</span> is the iteration‑<span
-class="math inline">\(k\)</span> predicted distribution, and <span
-class="math inline">\(\alpha&gt;0\)</span> balances feature distance and
-distribution discrepancy.</p>
-<p>Let the neighbor set be <span
-class="math inline">\(\mathcal{N}(x_m)\)</span> with true ages <span
-class="math inline">\(\{\mu_n: x_n\in\mathcal{N}(x_m)\}\)</span>. Define
-the <strong>pseudo‑age</strong> of <span
-class="math inline">\(x_m\)</span> as <span class="math display">\[
-\tilde{\mu}_m^{(k)}=\frac{1}{K}\sum_{x_n\in\mathcal{N}(x_m)}\mu_n,
-\]</span> and construct its target label distribution (a discrete
-Gaussian using age‑wise variance <span
-class="math inline">\(\sigma_y^{(k)}\)</span>): <span
-class="math display">\[
-d_m^{(k)}(y)\propto
-\exp\!\left(-\frac{(y-\tilde{\mu}_m^{(k)})^2}{2(\sigma_y^{(k)})^2}\right),\quad
-y\in\mathcal{Y}.
-\]</span> All the distributional information used in pseudo‑age
-estimation comes solely from the current model’s predicted label
-distributions <span class="math inline">\(p^{(k)}(\cdot\mid x)\)</span>;
-unlabeled samples require neither prior ages nor initialized
-targets.</p>
-<p><strong>(3) Age‑wise <span class="math inline">\(\,\sigma\,\)</span>
-adaptation and target reconstruction.</strong> Compute the point
-estimate <span
-class="math inline">\(\hat{\mu}(x)=\arg\max_{y\in\mathcal{Y}}
-p^{(k)}(y\mid x)\)</span> and the reference age <span
-class="math inline">\(\mu_{\text{ref}}(x)\)</span> (for labeled samples
-use <span class="math inline">\(\mu_i\)</span>; for unlabeled samples
-use <span class="math inline">\(\tilde{\mu}_m^{(k)}\)</span>). Define
-the error <span class="math inline">\(e(x)=\lvert
-\hat{\mu}(x)-\mu_{\text{ref}}(x)\rvert\)</span> and select samples with
-<span class="math inline">\(e(x)\)</span> below the current MAE as the
-<strong>trusted set</strong>, then group them by age <span
-class="math inline">\(y\)</span>. Next, for each <span
-class="math inline">\(y\)</span>, solve a one‑dimensional constrained
-problem to obtain the updated age‑wise variance <span
-class="math inline">\(\sigma_y^{(k+1)}\)</span> that minimizes the total
-KL between the Gaussian target and the trusted samples’ predicted
-distributions. Finally, using <span
-class="math inline">\(\{\sigma_y^{(k+1)}\}\)</span>, reconstruct target
-distributions for all samples—combining with true ages <span
-class="math inline">\(\mu_i\)</span> (for <span
-class="math inline">\(S_l\)</span>) or pseudo‑ages <span
-class="math inline">\(\tilde{\mu}_m^{(k)}\)</span> (for <span
-class="math inline">\(S_u\)</span>)—and proceed to the next round of KL
-minimization for <span class="math inline">\(\Theta\)</span>.</p>
-<p><strong>Notation.</strong></p>
+<p>SCE-LDL advances from the maximum-entropy IIS-LDL to “energy + sparse
+gating” for fine-grained probabilistic modeling. It preserves the
+philosophy of label distribution learning while significantly improving
+expressiveness and robustness.</p>
+<h1
+id="sparsity-conditional-energy-label-distribution-learning">Sparsity-Conditional
+Energy Label Distribution Learning</h1>
+<h2 id="deriving-the-conditional-probability">Deriving the Conditional
+Probability</h2>
+<p>The conditional energy model is defined as</p>
+<p><span class="math display">\[
+p(y\mid
+x)=\frac{\sum_{h}\exp\{-E(x,y,h)\}}{\sum_{y}\sum_{h}\exp\{-E(x,y,h)\}},
+\]</span></p>
+<p>where <span class="math inline">\(h\in\{0,1\}^R\)</span> is a binary
+latent vector. The energy function is</p>
+<p><span class="math display">\[
+E(x,y,h)= -\sum_{r=1}^{R} h_r
+f_r(x;\omega_r)-\sum_{r=1}^{R}\sum_{j=1}^{l} h_r u_{jr}
+y_j-\sum_{j=1}^{l} b_j y_j.
+\]</span></p>
+<p>The symbols mean:</p>
 <ul>
-<li><span class="math inline">\(x\in\mathbb{R}^d\)</span>: numeric
-feature vector of an image; <span class="math inline">\(\mu\)</span>:
-true age; <span class="math inline">\(\tilde{\mu}\)</span>: pseudo‑age;
-<span class="math inline">\(\hat{\mu}\)</span>: point estimate from the
-argmax of the predicted distribution.<br />
+<li><span class="math inline">\(x\)</span>: input feature vector. In the
+experiments, visual features such as BIF (Bio-Inspired Features) are
+used.<br />
 </li>
-<li><span class="math inline">\(\mathcal{Y}\)</span>: discrete age set;
-<span class="math inline">\(d(y\mid\cdot,\sigma_y)\)</span>: discrete
-Gaussian label distribution with mean at age and age‑wise variance <span
-class="math inline">\(\sigma_y\)</span>; <span
-class="math inline">\(Z\)</span>: normalization constant.<br />
+<li><span class="math inline">\(y\)</span>: age index vector in one-hot
+form; if the true age falls in class <span
+class="math inline">\(j\)</span>, then only <span
+class="math inline">\(y_j=1\)</span> and the rest are <span
+class="math inline">\(0\)</span>.<br />
 </li>
-<li><span class="math inline">\(p^{(k)}(y\mid x)\)</span>:
-iteration‑<span class="math inline">\(k\)</span> predicted distribution
-for sample <span class="math inline">\(x\)</span>; <span
-class="math inline">\(\Theta^{(k)}\)</span>: model parameters; <span
-class="math inline">\(\theta_y^{(k)}\)</span>: class‑conditional weight
-vector.<br />
+<li><span class="math inline">\(h\in\{0,1\}^R\)</span>: binary latent
+vector of length <span class="math inline">\(R\)</span>, interpretable
+as a set of “feature extractor” gates.<br />
 </li>
-<li><span class="math inline">\(\lambda(\cdot,\cdot)\)</span>: composite
-distance; <span
-class="math inline">\(\mathrm{KL}(\cdot\|\cdot)\)</span>:
-Kullback–Leibler divergence; <span class="math inline">\(K\)</span>:
-number of neighbors; <span class="math inline">\(\alpha&gt;0\)</span>:
-trade‑off hyperparameter.<br />
+<li><span class="math inline">\(R\)</span>: the number of latent
+variables (or extractors), set by design; <span
+class="math inline">\(l\)</span> is the total number of age
+classes.<br />
 </li>
-<li><span class="math inline">\(\sigma_y\)</span>: variance for age
-<span class="math inline">\(y\)</span> (age‑wise adaptive); MAE: current
-round’s mean absolute error threshold for selecting trusted
-samples.</li>
+<li><span class="math inline">\(f_r(x;\omega_r)\)</span>: the response
+of the <span class="math inline">\(r\)</span>-th extractor to <span
+class="math inline">\(x\)</span>, with parameters <span
+class="math inline">\(\omega_r\)</span>; can be linear, quadratic, or
+sigmoid.<br />
+</li>
+<li><span class="math inline">\(u_{jr}\)</span>: the weight connecting
+latent unit <span class="math inline">\(r\)</span> to age <span
+class="math inline">\(j\)</span>, controlling the influence of that
+extractor on that age.<br />
+</li>
+<li><span class="math inline">\(b_j\)</span>: bias term for age <span
+class="math inline">\(j\)</span>.</li>
 </ul>
-<p>The algorithmic workflow is illustrated below.</p>
-<p><img src="SALDL%20FlowChart.png" /></p>
-<h2 id="experiments-and-results">Experiments and Results</h2>
-<p>The setup follows common age‑estimation practice: extract BIF
-features on MORPH and reduce dimensionality via MFA; fix a held‑out test
-set; on the training side, simulate “label scarcity” by controlling the
-labeled proportion while keeping the total number of samples roughly
-constant. Semi‑supervised methods (SLDL, SALDL) use additional unlabeled
-samples at every labeled scale. Baselines include KPLS, OHRank, LDL,
-ALDL, and label propagation (LP). The evaluation metric is MAE.
-Hyperparameters are chosen by cross‑validation; a typical choice is
-initial variance <span class="math inline">\(\sigma_0=3\)</span>,
-neighbors <span class="math inline">\(K=10\)</span>, composite‑distance
-weight <span class="math inline">\(\alpha=10^{-3}\)</span>, and the
-maximum number of iterations decreases moderately as the labeled set
-grows. At inference, the point estimate is <span
-class="math inline">\(y^*=\arg\max_y p(y\mid x;\Theta^*)\)</span>.</p>
-<p>Results show that under low labeled counts (e.g., <span
-class="math inline">\(\leq 10^3\)</span>), SALDL consistently
-outperforms all baselines in MAE. The gains come from two sources: (i)
-pseudo‑age estimation converts unlabeled data into effective supervision
-by combining feature distance with distributional proximity; (ii)
-age‑wise variance adaptation minimizes the KL between target and
-predicted distributions on the trusted set, aligning label distributions
-to the varying “rates of change” across ages. Comparatively, SLDL
-clearly outperforms ALDL (which only adapts), demonstrating the benefit
-of semi‑supervision; SALDL further improves upon SLDL, indicating that
-alternating semi‑supervision and adaptation has additive effects. When
-labels are plentiful, method gaps shrink; in the limit of “fully
-labeled,” SALDL reduces to ALDL. Even when unlabeled and labeled sources
-differ in gender/ethnicity composition, increasing unlabeled volume
-continues to reduce error, reflecting robustness of pseudo‑age
-estimation and adaptation to distribution shift.</p>
+<p>The full parameter set is <span
+class="math inline">\(\theta=\{b_j,u_{jr},\omega_r\}\)</span>.<br />
+In the conditional probability below, <span
+class="math inline">\(\exp\{f_r(x;\omega_r)+u_{jr}\}\)</span> can be
+viewed as the “activation” of extractor <span
+class="math inline">\(r\)</span> on age <span
+class="math inline">\(j\)</span>. When <span
+class="math inline">\(f_r(x;\omega_r)+u_{jr}\ll0\)</span>, this value is
+close to <span class="math inline">\(0\)</span>, meaning the extractor
+mismatches this age and is suppressed; when it is large, the activation
+is strong and multiplicatively amplifies the contribution. Setting <span
+class="math inline">\(h_r=1\)</span> means the extractor “opens the gate
+and participates”, while <span class="math inline">\(h_r=0\)</span>
+means it is “closed”; the whole model thus exhibits an energy structure
+composed of multiple gated units.</p>
+<p>We care about the conditional probability of a fixed age <span
+class="math inline">\(j\)</span>. Using the one-hot property and keeping
+only the <span class="math inline">\(y_j=1\)</span> terms, we get</p>
+<p><span class="math display">\[
+p(y_j=1\mid x)=
+\frac{\sum_{h}\exp\!\Big(\sum_{r=1}^{R}h_r[f_r(x;\omega_r)+u_{jr}]+b_j\Big)}
+{\sum_{k=1}^{l}\sum_{h}\exp\!\Big(\sum_{r=1}^{R}h_r[f_r(x;\omega_r)+u_{kr}]+b_k\Big)}.
+\]</span></p>
+<p>The key is to simplify the sum over the vector <span
+class="math inline">\(h\)</span>. Let <span
+class="math inline">\(A_{rj}=f_r(x;\omega_r)+u_{jr}\)</span>. Because
+the energy is additive in <span class="math inline">\(h_r\)</span> with
+no interaction terms, we have</p>
+<p><span class="math display">\[
+\exp\!\Big(\sum_{r}h_rA_{rj}\Big)=\prod_{r}\exp(h_rA_{rj}).
+\]</span></p>
+<p>The sum in the numerator can be expanded as nested binary sums:</p>
+<p><span class="math display">\[
+\sum_{h_1=0}^{1}\cdots\sum_{h_R=0}^{1}\;\prod_{r=1}^{R}\exp(h_rA_{rj}).
+\]</span></p>
+<p>Consider the innermost variable <span
+class="math inline">\(h_R\)</span>. Treat everything independent of
+<span class="math inline">\(h_R\)</span> as a constant:</p>
+<p><span class="math display">\[
+\sum_{h_R}\exp(h_RA_{Rj})=1+e^{A_{Rj}}.
+\]</span></p>
+<p>Thus the innermost sum collapses to <span
+class="math inline">\((1+e^{A_{Rj}})\)</span>. Proceeding to <span
+class="math inline">\(h_{R-1}\)</span> yields another factor <span
+class="math inline">\((1+e^{A_{R-1,j}})\)</span>. Peeling layer by
+layer, each step leaves a factor <span
+class="math inline">\((1+e^{A_{rj}})\)</span>. Ultimately,</p>
+<p><span class="math display">\[
+\sum_{h}\prod_{r=1}^{R}\exp(h_rA_{rj})=\prod_{r=1}^{R}(1+e^{A_{rj}}).
+\]</span></p>
+<p>Similarly, the denominator has <span
+class="math inline">\(\prod_{r=1}^{R}(1+e^{A_{rk}})\)</span> for each
+age <span class="math inline">\(k\)</span>. Therefore, the closed-form
+conditional probability is</p>
+<p><span class="math display">\[
+p(y_j=1\mid x)=
+\frac{e^{b_j}\prod_{r=1}^{R}\big[1+\exp\{f_r(x;\omega_r)+u_{jr}\}\big]}
+{\sum_{k=1}^{l}
+e^{b_k}\prod_{r=1}^{R}\big[1+\exp\{f_r(x;\omega_r)+u_{kr}\}\big]}.
+\]</span></p>
+<p>This derivation shows that, instead of summing over <span
+class="math inline">\(2^R\)</span> latent configurations, we reduce the
+problem to a product of <span class="math inline">\(R\)</span> bracketed
+terms. Intuitively, each latent unit <span
+class="math inline">\(h_r\)</span> acts as a switch: when <span
+class="math inline">\(f_r(x;\omega_r)+u_{jr}\ll 0\)</span>, the
+corresponding bracket approximates <span
+class="math inline">\(1\)</span>, i.e., the gate closes and contributes
+nothing; when it is large, the bracket exceeds <span
+class="math inline">\(1\)</span> and multiplicatively amplifies the
+contribution. The combination of all latent units thus forms a “<span
+class="math inline">\(0\)</span> or <span
+class="math inline">\(&gt;1\)</span>” gated product, enabling
+distributed representation and laying the groundwork for sparsity
+regularization.</p>
+<h2 id="optimization-and-updates">Optimization and Updates</h2>
+<p>Training aims to make the predicted label distribution <span
+class="math inline">\(p(y\mid x)\)</span> approximate the annotated
+distribution <span class="math inline">\(D=\{d_j\}_{j=1}^{l}\)</span>,
+while encouraging latent units to be “off” via a sparsity term. Given a
+training set <span
+class="math inline">\(\{(x^{(i)},D^{(i)})\}_{i=1}^{N}\)</span>, define
+the (maximized) objective:</p>
+<p><span class="math display">\[
+\mathcal{L}(\theta)=
+\sum_{i=1}^{N}\sum_{j=1}^{l} d^{(i)}_j \log p(y_j=1\mid x^{(i)};\theta)
++\lambda \sum_{i=1}^{N}\sum_{j=1}^{l} d^{(i)}_j \sum_{r=1}^{R}
+p(h_r=0\mid x^{(i)},y_j=1),
+\]</span></p>
+<p>where <span
+class="math inline">\(\theta=\{b_j,u_{jr},\omega_r\}\)</span>, <span
+class="math inline">\(\lambda\)</span> is the sparsity weight, and <span
+class="math inline">\(p(h_r=0\mid
+x,y_j=1)=\sigma(-a_{jr}(x))=1-\sigma(a_{jr}(x))\)</span>, with <span
+class="math inline">\(\sigma(z)=1/(1+e^{-z})\)</span> and <span
+class="math inline">\(a_{jr}(x)=f_r(x;\omega_r)+u_{jr}\)</span>. The
+closed-form conditional probability is</p>
+<p><span class="math display">\[
+p(y_j=1\mid x)=
+\frac{e^{b_j}\prod_{r=1}^{R}\big[1+e^{a_{jr}(x)}\big]}
+{\sum_{k=1}^{l} e^{b_k}\prod_{r=1}^{R}\big[1+e^{a_{kr}(x)}\big]}.
+\]</span></p>
+<p>For a single sample <span class="math inline">\((x,D)\)</span>,
+define <span class="math inline">\(\ell_j(x)=\log p(y_j=1\mid
+x)=b_j+\sum_{r}\log(1+e^{a_{jr}(x)})-\log Z(x)\)</span>, where <span
+class="math inline">\(Z(x)=\sum_{k}e^{b_k}\prod_{r}(1+e^{a_{kr}(x)})\)</span>.
+Using <span class="math inline">\(\partial\log(1+e^z)/\partial
+z=\sigma(z)\)</span> and the softmax property, we obtain</p>
+<p><span class="math display">\[
+\frac{\partial \ell_j}{\partial b_k}=\mathbf{1}[k=j]-p(y_k=1\mid
+x),\qquad
+\frac{\partial \ell_j}{\partial u_{kr}}=\big(\mathbf{1}[k=j]-p(y_k=1\mid
+x)\big)\sigma(a_{kr}(x)),
+\]</span></p>
+<p><span class="math display">\[
+\frac{\partial \ell_j}{\partial \omega_r}=
+\Big(\sigma(a_{jr}(x))-\sum_{k}p(y_k=1\mid
+x)\sigma(a_{kr}(x))\Big)\frac{\partial f_r(x;\omega_r)}{\partial
+\omega_r}.
+\]</span></p>
+<p>The gradients of the sparsity regularizer are</p>
+<p><span class="math display">\[
+\frac{\partial}{\partial u_{kr}}\sigma(-a_{kr}(x))
+=-\sigma(a_{kr}(x))(1-\sigma(a_{kr}(x))),\qquad
+\frac{\partial}{\partial \omega_r}\sigma(-a_{jr}(x))
+=-\sigma(a_{jr}(x))(1-\sigma(a_{jr}(x)))\frac{\partial
+f_r(x;\omega_r)}{\partial \omega_r}.
+\]</span></p>
+<p>This regularizer does not involve <span
+class="math inline">\(b_k\)</span>, so its derivative w.r.t. the biases
+is <span class="math inline">\(0\)</span>.</p>
+<p>Combining both parts and summing over samples weighted by label
+distributions, the total gradients are:</p>
+<p><span class="math display">\[
+\frac{\partial \mathcal{L}}{\partial b_k}=\sum_{i}\sum_{j}
+d^{(i)}_j\big(\mathbf{1}[k=j]-p_k^{(i)}\big),
+\]</span></p>
+<p><span class="math display">\[
+\frac{\partial \mathcal{L}}{\partial u_{kr}}
+=\sum_{i}\sum_{j}
+d^{(i)}_j\Big[\big(\mathbf{1}[k=j]-p_k^{(i)}\big)\sigma(a^{(i)}_{kr})\Big]
+-\lambda\sum_{i}
+d^{(i)}_k\,\sigma(a^{(i)}_{kr})(1-\sigma(a^{(i)}_{kr})),
+\]</span></p>
+<p><span class="math display">\[
+\frac{\partial \mathcal{L}}{\partial \omega_r}
+=\sum_{i}\sum_{j} d^{(i)}_j\Big[\Big(\sigma(a^{(i)}_{jr})-\sum_{k}
+p_k^{(i)}\,\sigma(a^{(i)}_{kr})\Big)\frac{\partial
+f_r(x^{(i)};\omega_r)}{\partial \omega_r}\Big]
+-\lambda\sum_{i}\sum_{j}
+d^{(i)}_j\,\sigma(a^{(i)}_{jr})(1-\sigma(a^{(i)}_{jr}))\frac{\partial
+f_r(x^{(i)};\omega_r)}{\partial \omega_r}.
+\]</span></p>
+<p>In practice, parameters are updated via mini-batch stochastic
+gradient <strong>ascent</strong> (or gradient <strong>descent</strong>
+on <span class="math inline">\(-\mathcal{L}\)</span>):</p>
+<p><span class="math display">\[
+b_k \leftarrow b_k+\eta\,\frac{\partial \mathcal{L}}{\partial
+b_k},\qquad
+u_{kr} \leftarrow u_{kr}+\eta\,\frac{\partial \mathcal{L}}{\partial
+u_{kr}},\qquad
+\omega_r \leftarrow \omega_r+\eta\,\frac{\partial \mathcal{L}}{\partial
+\omega_r},
+\]</span></p>
+<p>where <span class="math inline">\(\eta\)</span> is the learning rate.
+When <span class="math inline">\(f_r(x;\omega_r)=\omega_r^\top
+x+w_{r0}\)</span>, the gradients are <span
+class="math inline">\(\partial f_r/\partial \omega_r=x\)</span>, <span
+class="math inline">\(\partial f_r/\partial w_{r0}=1\)</span>, so the
+bias can be folded into the weight vector. In the paper’s experiments,
+linear extractors, a learning rate of about <span
+class="math inline">\(0.1\)</span>, and <span
+class="math inline">\(30\)</span> training epochs suffice to converge.
+By stacking a sparsity regularizer on top of the log-likelihood gradient
+for KL matching, the algorithm jointly achieves “probability matching +
+sparse hidden-unit activation”, so each latent unit learns to activate
+on compatible samples and shut off on mismatched ones, forming a stable
+sparse gating structure.</p>
+<h1 id="experiments-and-result-analysis">Experiments and Result
+Analysis</h1>
+<p>Experiments are conducted mainly on two public facial age estimation
+datasets: MORPH II and ChaLearn Apparent Age. MORPH II contains <span
+class="math inline">\(55{,}132\)</span> facial images with age range
+<span class="math inline">\(16\)</span>–<span
+class="math inline">\(77\)</span>, with an approximate racial
+composition of <span class="math inline">\(77\%\)</span>
+African-American, <span class="math inline">\(19\%\)</span> Caucasian,
+and <span class="math inline">\(4\%\)</span> Others. After face
+detection and alignment, BIF (Bio-Inspired Features) are extracted, then
+reduced to <span class="math inline">\(200\)</span> dimensions using MFA
+(Marginal Fisher Analysis), followed by zero-mean and unit-variance
+normalization. The ChaLearn dataset contains <span
+class="math inline">\(3{,}615\)</span> images (<span
+class="math inline">\(2{,}479\)</span> for training and <span
+class="math inline">\(1{,}136\)</span> for validation), also processed
+with DPM detection and five-point alignment. BIF features of <span
+class="math inline">\(7{,}152\)</span> dimensions are extracted without
+dimensionality reduction. Label distributions are constructed as
+follows: on MORPH, a Gaussian with mean at the true age and standard
+deviation <span class="math inline">\(1\)</span> is used to generate
+<span class="math inline">\(D_j\)</span>; on ChaLearn, the official mean
+and standard deviation are plugged into the same Gaussian formula.
+Evaluation metrics include Mean Absolute Error (MAE) and the cumulative
+score curve CS@m (i.e., the proportion of samples with error less than
+<span class="math inline">\(m\)</span> years). The study compares a
+range of classic LDL methods, including CE-LDL, BFGS-LDL, CPNN-LDL,
+KPLS, and the traditional regression method OHR, all under identical
+features and distribution-construction protocols.</p>
+<p>Results show that SCE-LDL achieves the best performance on both
+datasets. On MORPH, MAE is <span
+class="math inline">\(3.858\pm0.090\)</span>, significantly better than
+CE-LDL (<span class="math inline">\(4.146\)</span>), BFGS-LDL (<span
+class="math inline">\(4.872\)</span>), CPNN-LDL (<span
+class="math inline">\(4.705\)</span>), KPLS (<span
+class="math inline">\(4.442\)</span>), and OHR (<span
+class="math inline">\(7.085\)</span>). On ChaLearn, MAE reaches <span
+class="math inline">\(6.432\)</span>, clearly improving over CE-LDL
+(<span class="math inline">\(6.708\)</span>) and KPLS (<span
+class="math inline">\(6.841\)</span>), and far surpassing CPNN-LDL
+(<span class="math inline">\(12.979\)</span>). The CS curves (error
+thresholds from <span class="math inline">\(0\)</span> to <span
+class="math inline">\(10\)</span>) further indicate that SCE-LDL lies
+higher in the low-error region, evidencing stronger advantages in
+high-accuracy predictions. Sensitivity studies analyze the effects of
+the number of latent units <span class="math inline">\(R\)</span> and
+the sparsity coefficient <span class="math inline">\(\lambda\)</span>:
+as <span class="math inline">\(R\)</span> varies from <span
+class="math inline">\(50\)</span> to <span
+class="math inline">\(175\)</span>, MAE changes smoothly, peaking around
+<span class="math inline">\(150\)</span> yet remaining fairly
+insensitive; for <span class="math inline">\(\lambda\)</span> in the
+range <span class="math inline">\(0.001\)</span>–<span
+class="math inline">\(0.01\)</span>, performance is stable, with the
+best around <span class="math inline">\(0.005\)</span>. The experiments
+also show that linear extractors suffice to achieve strong performance;
+nonlinear forms bring limited gains at higher computational cost.
+Overall, SCE-LDL outperforms other LDL methods by realizing “selective
+activation” through latent gating and sparsity: when features match a
+given age, the latent units activate and multiplicatively boost the
+probability; mismatched features are naturally suppressed, significantly
+enhancing robustness. This is especially effective on in-the-wild
+datasets like ChaLearn, where complex conditions—lighting, expression,
+etc.—prevail: the gating mechanism filters noisy features so that the
+predicted distribution becomes more concentrated and stable. In summary,
+combining energy modeling with sparse gating not only surpasses existing
+LDL methods in performance but also points to a direction where label
+distribution learning can further enhance representational power via
+latent energy structures at the feature level.</p>
 ]]></content>
       <categories>
         <category>Thorough Analysis</category>
