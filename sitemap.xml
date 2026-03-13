@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://jiashun-ye.github.io/en-blog/about/index.html</loc>
+    
+    <lastmod>2026-03-13</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://jiashun-ye.github.io/en-blog/2025/10/08/Thorough-Analysis-Sparse-Conditional-Energy-Label-Distribution-Learning-Improvements-in-Probabilistic-Modeling/</loc>
     
     <lastmod>2026-03-12</lastmod>
@@ -74,15 +83,6 @@
   </url>
   
   <url>
-    <loc>http://jiashun-ye.github.io/en-blog/about/index.html</loc>
-    
-    <lastmod>2025-09-10</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://jiashun-ye.github.io/en-blog/tags/index.html</loc>
     
     <lastmod>2025-04-02</lastmod>
@@ -121,7 +121,7 @@
 
   <url>
     <loc>http://jiashun-ye.github.io/en-blog</loc>
-    <lastmod>2026-03-12</lastmod>
+    <lastmod>2026-03-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -129,7 +129,7 @@
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/tags/Label-Distribution-Learning/</loc>
-    <lastmod>2026-03-12</lastmod>
+    <lastmod>2026-03-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -138,7 +138,7 @@
   
   <url>
     <loc>http://jiashun-ye.github.io/en-blog/categories/Thorough-Analysis/</loc>
-    <lastmod>2026-03-12</lastmod>
+    <lastmod>2026-03-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
