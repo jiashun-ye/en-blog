@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>JS.Ye’s Research Hub</title>
   
-  <subtitle>Paper Reviews, Study Notes, Research and Programs</subtitle>
+  <subtitle>Papers, Reviews, Experiments, Projects and Foundations</subtitle>
   <link href="http://jiashun-ye.github.io/en-blog/atom.xml" rel="self"/>
   
   <link href="http://jiashun-ye.github.io/en-blog/"/>
