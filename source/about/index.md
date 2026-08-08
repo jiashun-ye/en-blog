@@ -6,7 +6,7 @@ type: "about"
 
 <div style="font-family: 'STFangsong', 'FangSong', 'Microsoft YaHei', serif; line-height: 1.8; margin: 0;">
 
-  <p>This is Jiashun Ye's academic blog and Research Hub, where I organize selected work from my learning, research, and practice. The content is organized into five sections:</p>
+  <p>This is Jiashun Ye's academic blog, where I organize selected work from my learning, research, and practice. The content is organized into five sections:</p>
 
   <p><strong>Papers</strong> — In-depth studies of a small number of papers that I find worth revisiting. I usually select papers that satisfy at least one of three criteria: they introduce a reusable language, problem formulation, or computational paradigm; their core ideas can be independently derived, implemented, tested, or questioned; or understanding them provides long-term leverage for studying a broader family of methods.</p>
 
